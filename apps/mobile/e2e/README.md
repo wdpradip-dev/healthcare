@@ -1,0 +1,1 @@
+Maestro flow YAML files go here ([ADR-013](../../../docs/43-ARCHITECTURE-DECISIONS.md)), following the case list in [docs/31-E2E-TEST-CASES.md](../../../docs/31-E2E-TEST-CASES.md). Run via `pnpm test:e2e` against a local Expo dev build. Empty in Phase 1 — added starting Phase 3 once auth/registration exists.

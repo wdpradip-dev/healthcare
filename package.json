@@ -1,0 +1,36 @@
+{
+  "name": "hospital-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Hospital Management and Patient Appointment Platform (learning/demo project, synthetic data only)",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "quality": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration",
+    "db:migrate": "pnpm --filter @hospital/database db:migrate",
+    "db:migrate:deploy": "pnpm --filter @hospital/database db:migrate:deploy",
+    "db:seed": "pnpm --filter @hospital/database db:seed",
+    "db:generate": "pnpm --filter @hospital/database db:generate",
+    "db:migration-smoke-test": "node scripts/db-migration-smoke-test.mjs",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "pg": "^8.13.1",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.3"
+  }
+}
