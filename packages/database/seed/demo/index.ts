@@ -69,6 +69,7 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
 
   console.log("[seed:demo] Creating hospital admins + settings...");
   const adminA = await createUser(prisma, {
+    name: "Priya Desai",
     email: "admin@citygeneral.example",
     hospitalId: hospitalA.id,
     passwordHash: demoPasswordHash,
@@ -78,6 +79,7 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
     data: { hospitalId: hospitalA.id, updatedBy: adminA.id },
   });
   const adminB = await createUser(prisma, {
+    name: "Marcus Bianchi",
     email: "admin@lakesidemedical.example",
     hospitalId: hospitalB.id,
     passwordHash: demoPasswordHash,
@@ -92,6 +94,7 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
   for (const fixed of FIXED_STAFF) {
     const branch = [hospitalAMain, hospitalARiverside].find((b) => b.name === fixed.branch)!;
     const user = await createUser(prisma, {
+      name: fullName(fixed.firstName, fixed.lastName),
       email: fixed.email,
       hospitalId: hospitalA.id,
       passwordHash: demoPasswordHash,
@@ -114,6 +117,7 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
         const first = randomItem(FIRST_NAMES);
         const last = randomItem(LAST_NAMES);
         const user = await createUser(prisma, {
+          name: fullName(first, last),
           email: emailFor(first, last, hospital.slug),
           hospitalId: hospital.id,
           passwordHash: demoPasswordHash,
@@ -394,10 +398,18 @@ async function createDepartments(
 
 async function createUser(
   prisma: PrismaClient,
-  opts: { email: string; hospitalId: string | null; passwordHash: string; roleId: string; branchId?: string },
+  opts: {
+    name: string;
+    email: string;
+    hospitalId: string | null;
+    passwordHash: string;
+    roleId: string;
+    branchId?: string;
+  },
 ) {
   const user = await prisma.user.create({
     data: {
+      name: opts.name,
       email: opts.email,
       hospitalId: opts.hospitalId,
       passwordHash: opts.passwordHash,
@@ -424,6 +436,9 @@ async function createDoctor(
   },
 ): Promise<Doctor> {
   const user = await createUser(prisma, {
+    // "Dr." is stored as part of the display name itself (matches every
+    // mockup's "Dr. Sarah Patel" literally) rather than a role-based UI prefix.
+    name: `Dr. ${fullName(opts.firstName, opts.lastName)}`,
     email: opts.email,
     hospitalId: opts.hospitalId,
     passwordHash: opts.passwordHash,
@@ -490,6 +505,7 @@ async function createPatient(
   },
 ): Promise<Patient> {
   const user = await createUser(prisma, {
+    name: fullName(opts.firstName, opts.lastName),
     email: opts.email,
     hospitalId: null,
     passwordHash: opts.passwordHash,

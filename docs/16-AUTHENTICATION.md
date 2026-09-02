@@ -36,7 +36,7 @@ Permissions are embedded in the access token at issuance for fast in-process aut
 
 1. `POST /auth/login` with identifier + password.
 2. Server looks up `User` by email/phone; generic `AUTH_INVALID_CREDENTIALS` on no-match or password-mismatch (no enumeration signal).
-3. Check `status`: `PENDING_ACTIVATION` → reject with a distinct guidance message (not a security-sensitive distinction, since the user knows they haven't activated yet); `LOCKED` → `AUTH_ACCOUNT_LOCKED` with unlock time; `DISABLED` → `AUTH_ACCOUNT_DISABLED`.
+3. Check `status`: `PENDING_ACTIVATION` → reject with `AUTH_ACCOUNT_PENDING_ACTIVATION` (a distinct guidance message, not a security-sensitive distinction, since the user knows they haven't activated yet); `LOCKED` → `AUTH_ACCOUNT_LOCKED` with unlock time; `DISABLED` → `AUTH_ACCOUNT_DISABLED`.
 4. On success: reset `failedLoginAttempts`, create `DeviceSession`, issue token pair, log `AUTH_LOGIN`.
 5. On failure: increment `failedLoginAttempts`; at 5 within a rolling 15-minute window, set `lockedUntil = now + 15m` and status effectively locked.
 

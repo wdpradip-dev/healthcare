@@ -40,17 +40,17 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-301 | P0 | NestJS bootstrap: global pipes/filters/interceptors scaffold | T-102, T-201 | api | TODO |
-| T-302 | P0 | Auth module: register + OTP issuance/verification | T-301, T-203 | api | TODO |
-| T-303 | P0 | Auth module: login, lockout, JWT issuance (RS256) | T-302 | api | TODO |
-| T-304 | P0 | Refresh token rotation + reuse-detection | T-303 | api | TODO |
-| T-305 | P1 | Forgot/reset password flow + session invalidation | T-303 | api | TODO |
-| T-306 | P0 | `packages/validation` Zod schemas for all auth DTOs | T-301 | packages, api | TODO |
-| T-307 | P0 | `AuthorizationGuard` + `@RequirePermission` decorator + lint rule enforcing its presence | T-303, T-203 | api | TODO |
-| T-308 | P1 | Audit interceptor scaffold (writes `AuditLog` on mutation) | T-301 | api | TODO |
-| T-309 | P1 | Auth integration test suite (lockout, OTP exhaustion, refresh reuse) | T-302–T-305 | api | TODO |
-| T-310 | P2 | Admin console: Login, Forgot/Reset Password, Activate Account pages | T-303 | admin | TODO |
-| T-311 | P2 | Mobile: Splash, Welcome, Login, Register, OTP, Forgot/Reset Password screens | T-302–T-305 | mobile | TODO |
+| T-301 | P0 | NestJS bootstrap: global pipes/filters/interceptors scaffold | T-102, T-201 | api | DONE |
+| T-302 | P0 | Auth module: register + OTP issuance/verification | T-301, T-203 | api | DONE |
+| T-303 | P0 | Auth module: login, lockout, JWT issuance (RS256) | T-302 | api | DONE |
+| T-304 | P0 | Refresh token rotation + reuse-detection | T-303 | api | DONE |
+| T-305 | P1 | Forgot/reset password flow + session invalidation | T-303 | api | DONE |
+| T-306 | P0 | `packages/validation` Zod schemas for all auth DTOs | T-301 | packages, api | DONE |
+| T-307 | P0 | `AuthorizationGuard` + `@RequirePermission` decorator + lint rule enforcing its presence | T-303, T-203 | api | DONE |
+| T-308 | P1 | Audit interceptor scaffold (writes `AuditLog` on mutation) | T-301 | api | DONE |
+| T-309 | P1 | Auth integration test suite (lockout, OTP exhaustion, refresh reuse) | T-302–T-305 | api | DONE |
+| T-310 | P2 | Admin console: Login, Forgot/Reset Password pages | T-303 | admin | DONE |
+| T-311 | P2 | Mobile: Splash, Welcome, Login, Register, OTP, Forgot/Reset Password screens | T-302–T-305 | mobile | DONE |
 
 ## Phase 4 — Hospital/branch/department/user management
 
@@ -62,7 +62,7 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 | T-404 | P0 | Users module: invite/activate/deactivate/list | T-307 | api | TODO |
 | T-405 | P1 | Admin console shell: sidebar/topbar, permission-driven nav, hospital switcher | T-310 | admin | TODO |
 | T-406 | P1 | Admin: Branches, Departments screens | T-402, T-403, T-405 | admin | TODO |
-| T-407 | P1 | Admin: Users screen + invite flow UI | T-404, T-405 | admin | TODO |
+| T-407 | P1 | Admin: Users screen + invite flow UI, Activate Account page (moved from Phase 3 T-310 — depends on the invite flow this phase introduces) | T-404, T-405 | admin | TODO |
 | T-408 | P2 | Tenant-isolation integration tests for Hospital/Branch/Department/User | T-401–T-404 | api | TODO |
 
 ## Phase 5 — Doctor/patient management

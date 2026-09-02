@@ -9,6 +9,16 @@ const booleanFromString = z
   .enum(["true", "false"])
   .transform((v) => v === "true");
 
+// Every `.env.example` sets its optional URL vars to `""` rather than
+// omitting them (so the file stays a complete, uncommented reference) — a
+// dev who copies it verbatim would otherwise get a hard startup failure
+// from `.url()` rejecting the empty string as an unset value.
+const optionalUrl = z
+  .string()
+  .optional()
+  .transform((v) => (v === "" ? undefined : v))
+  .pipe(z.string().url().optional());
+
 export const apiEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "staging", "production", "test"]),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -24,7 +34,7 @@ export const apiEnvSchema = z.object({
 
   OBJECT_STORAGE_PROVIDER: z.enum(["local", "supabase"]),
   OBJECT_STORAGE_BUCKET: z.string().min(1),
-  OBJECT_STORAGE_ENDPOINT: z.string().url().optional(),
+  OBJECT_STORAGE_ENDPOINT: optionalUrl,
   OBJECT_STORAGE_ACCESS_KEY_ID: z.string().optional(),
   OBJECT_STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
   OBJECT_STORAGE_SIGNED_URL_TTL: z.coerce.number().int().positive().default(600),
@@ -37,7 +47,7 @@ export const apiEnvSchema = z.object({
   GROQ_API_KEY: z.string().optional(),
   GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
 
-  RATE_LIMIT_REDIS_URL: z.string().url().optional(),
+  RATE_LIMIT_REDIS_URL: optionalUrl,
   QUEUE_BACKEND_URL: z.string().url(),
 
   CORS_ALLOWED_ORIGINS: z
@@ -46,7 +56,7 @@ export const apiEnvSchema = z.object({
     .transform((v) => v.split(",").map((s) => s.trim())),
 
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: optionalUrl,
 
   SUPER_ADMIN_BREAK_GLASS_ENABLED: booleanFromString.default("false"),
 });
@@ -55,16 +65,16 @@ export type ApiEnv = z.infer<typeof apiEnvSchema>;
 
 export const adminEnvSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z.string().url(),
-  API_INTERNAL_BASE_URL: z.string().url().optional(),
+  API_INTERNAL_BASE_URL: optionalUrl,
   SESSION_COOKIE_SECRET: z.string().min(32),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
 });
 
 export type AdminEnv = z.infer<typeof adminEnvSchema>;
 
 export const mobileEnvSchema = z.object({
   EXPO_PUBLIC_API_BASE_URL: z.string().url(),
-  EXPO_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+  EXPO_PUBLIC_SENTRY_DSN: optionalUrl,
   EAS_PROJECT_ID: z.string().optional(),
 });
 

@@ -1,6 +1,9 @@
 /**
  * React/Tailwind component primitives (admin console), themed from `@hospital/ui-tokens`.
- * Placeholder for Phase 1 — components are added alongside the admin screens that
- * first need them, starting Phase 4 (docs/40-ROADMAP.md), per docs/07-DESIGN-SYSTEM.md.
+ * See docs/07-DESIGN-SYSTEM.md. Components are added alongside the admin screens that
+ * first need them — Login/Forgot/Reset Password (Phase 3, T-310) introduced the first set.
  */
-export {};
+export { Button, type ButtonProps, type ButtonVariant } from "./button";
+export { TextField, type TextFieldProps } from "./text-field";
+export { FormAlert, type FormAlertProps, type FormAlertVariant } from "./form-alert";
+export { AuthShell, type AuthShellProps } from "./auth-shell";

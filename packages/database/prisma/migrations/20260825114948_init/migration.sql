@@ -125,6 +125,7 @@ CREATE TABLE "departments" (
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "hospital_id" UUID,
+    "name" TEXT NOT NULL,
     "email" TEXT,
     "phone" TEXT,
     "password_hash" TEXT NOT NULL,

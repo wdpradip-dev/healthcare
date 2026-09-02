@@ -68,6 +68,7 @@ Indexes: `(hospitalId)`, `(branchId, status)`. Audit: `DEPARTMENT_CREATE/UPDATE/
 |---|---|---|
 | id | uuid | PK |
 | hospitalId | uuid? | null for `PATIENT`/`SUPER_ADMIN`; required for staff/doctor |
+| name | string | full display name (single field — matches the Register screen's one "Full name" input, docs/08-MOBILE-DESIGN-MOCKUPS.md); the identity attribute lives here, not on Patient/Doctor/Staff, since it's common to all three |
 | email | string? | unique when present |
 | phone | string? | unique when present |
 | passwordHash | string | argon2id |

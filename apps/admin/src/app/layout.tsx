@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { AuthProvider } from "@/lib/auth-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,10 +8,12 @@ export const metadata: Metadata = {
   description: "Staff and administration console. See docs/06-ADMIN-PANEL-SPECIFICATION.md.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

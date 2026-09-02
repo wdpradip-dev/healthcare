@@ -1,15 +1,41 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { router } from "expo-router";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { lightColors } from "@hospital/ui-tokens";
+import { useAuth } from "@/lib/auth-context";
 
 /**
- * Placeholder root screen — Phase 1 scaffold. The real entry point is Splash
- * (docs/08-MOBILE-DESIGN-MOCKUPS.md), added in Phase 13 (task T-1301), or earlier
- * incrementally alongside auth (Phase 3, task T-311).
+ * Splash — docs/08-MOBILE-DESIGN-MOCKUPS.md "Authentication > Splash". The
+ * silent token check IS `AuthProvider.bootstrap()`, already running from the
+ * moment the provider mounts (see app/_layout.tsx); this screen just waits
+ * for it and routes. Patient Home (the authenticated destination) is built
+ * starting Phase 5 — until then this shows a placeholder instead of
+ * navigating into a screen that doesn't exist yet.
  */
-export default function Index() {
+export default function Splash() {
+  const { user, isBootstrapping } = useAuth();
+
+  useEffect(() => {
+    if (isBootstrapping) return;
+    if (!user) {
+      router.replace("/welcome");
+    }
+  }, [isBootstrapping, user]);
+
+  if (!isBootstrapping && user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Welcome, {user.name}</Text>
+        <Text style={styles.subtitle}>Patient Home is built starting Phase 5 — see docs/42-PROJECT-STATE.md.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Hospital Platform</Text>
-      <Text style={styles.subtitle}>Scaffold in progress — see docs/42-PROJECT-STATE.md.</Text>
+      <Text style={styles.subtitle}>Calm. Trusted. Care.</Text>
+      <ActivityIndicator style={styles.spinner} color={lightColors.primary} />
     </View>
   );
 }
@@ -19,18 +45,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FBFDFB",
+    backgroundColor: lightColors.background,
     padding: 24,
     gap: 8,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#191C1B",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#404944",
-    textAlign: "center",
-  },
+  title: { fontSize: 24, fontWeight: "700", color: lightColors.onSurface },
+  subtitle: { fontSize: 14, color: lightColors.onSurfaceVariant, textAlign: "center" },
+  spinner: { marginTop: 16 },
 });

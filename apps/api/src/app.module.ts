@@ -1,12 +1,20 @@
 import { Module } from "@nestjs/common";
 import { HealthModule } from "./health/health.module";
+import { AppConfigModule } from "./config/config.module";
+import { PrismaModule } from "./prisma/prisma.module";
+import { JwtCommonModule } from "./common/jwt/jwt-common.module";
+import { AuditModule } from "./audit/audit.module";
+import { CommonModule } from "./common/common.module";
+import { AuthModule } from "./auth/auth.module";
 
 /**
- * Root module. Domain feature modules (auth, patients, doctors, appointments, ...)
+ * Root module. Domain feature modules (patients, doctors, appointments, ...)
  * are registered here as they're built — one per API domain in
- * docs/15-API-SPECIFICATION.md, starting Phase 3 (docs/40-ROADMAP.md).
+ * docs/15-API-SPECIFICATION.md, starting Phase 4 (docs/40-ROADMAP.md).
+ * Cross-cutting infrastructure (config, database, JWT, audit, the global
+ * guard/filter chain) is registered first since everything else depends on it.
  */
 @Module({
-  imports: [HealthModule],
+  imports: [AppConfigModule, PrismaModule, JwtCommonModule, AuditModule, CommonModule, AuthModule, HealthModule],
 })
 export class AppModule {}

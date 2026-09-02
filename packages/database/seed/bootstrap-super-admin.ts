@@ -7,7 +7,7 @@ import { hashPassword } from "@hospital/shared";
  * scripts, and deliberately NOT a hardcoded default credential (see
  * docs/25-SECURITY.md). Run explicitly, once, per environment:
  *
- *   SUPER_ADMIN_EMAIL=you@example.com SUPER_ADMIN_PASSWORD='...' pnpm --filter @hospital/database db:bootstrap-super-admin
+ *   SUPER_ADMIN_EMAIL=you@example.com SUPER_ADMIN_PASSWORD='...' [SUPER_ADMIN_NAME='...'] pnpm --filter @hospital/database db:bootstrap-super-admin
  *
  * Idempotent: if a SUPER_ADMIN user already exists, this does nothing rather
  * than creating a second one or silently resetting the existing password.
@@ -15,6 +15,7 @@ import { hashPassword } from "@hospital/shared";
 async function main(): Promise<void> {
   const email = process.env.SUPER_ADMIN_EMAIL;
   const password = process.env.SUPER_ADMIN_PASSWORD;
+  const name = process.env.SUPER_ADMIN_NAME ?? "Platform Administrator";
 
   if (!email || !password) {
     throw new Error(
@@ -49,6 +50,7 @@ async function main(): Promise<void> {
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
       data: {
+        name,
         email,
         passwordHash,
         status: "ACTIVE",

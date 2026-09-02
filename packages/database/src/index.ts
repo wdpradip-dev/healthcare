@@ -9,3 +9,11 @@ export { PrismaClient } from "@prisma/client";
 export { createPrismaClient, type ExtendedPrismaClient } from "./client";
 export { softDeleteExtension } from "./soft-delete-extension";
 
+/**
+ * Re-exported so integration tests (apps/api/test/*.integration-spec.ts) can
+ * seed the permission/role/medication catalog directly against their test
+ * database without shelling out to `pnpm db:seed` first — see
+ * docs/36-SEED-DATA.md "Catalog seed" for what this populates.
+ */
+export { seedCatalog } from "../seed/catalog/index";
+

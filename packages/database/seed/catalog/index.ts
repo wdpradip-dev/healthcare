@@ -10,6 +10,15 @@ import type { Permission } from "@hospital/validation";
  * creates hospitals/patients/appointments — see seed/demo for that, which is
  * guarded separately). Idempotent: upserts everything, safe to re-run.
  * See docs/36-SEED-DATA.md "Catalog seed".
+ *
+ * Typed against the plain `PrismaClient` (this function's only real caller is
+ * seed/index.ts). A caller holding the soft-delete-extended client from
+ * `createPrismaClient()` (apps/api/test/setup-app.ts) needs a narrow,
+ * documented cast at its own call site — Prisma's `$extends()` result isn't
+ * structurally assignable to `PrismaClient` even via a `Pick<>` of the exact
+ * models used, because extended model delegates carry a different internal
+ * generic `TypeMap`. The runtime shape is identical; only the compile-time
+ * generics disagree.
  */
 export async function seedCatalog(prisma: PrismaClient): Promise<void> {
   console.log("[seed:catalog] Seeding permissions...");
