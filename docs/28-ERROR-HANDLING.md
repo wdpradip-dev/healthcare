@@ -18,6 +18,8 @@ Every error response uses the envelope defined in [15-API-SPECIFICATION.md](15-A
 | `AUTH_ACCOUNT_LOCKED` | 423 | Too many failed login attempts |
 | `AUTH_ACCOUNT_DISABLED` | 403 | Account deactivated by Admin |
 | `AUTH_ACCOUNT_PENDING_ACTIVATION` | 403 | Login attempted before OTP verification (registration) or activation-link completion (invited staff) — not security-sensitive, routes the client to the verification screen |
+| `AUTH_HOSPITAL_SUSPENDED` | 403 | Login blocked because the account's Hospital has `status = SUSPENDED` (docs/18-MULTI-TENANCY.md "What 'suspended' means for a Hospital") |
+| `AUTH_ACTIVATION_TOKEN_INVALID` | 400 | Invite activation link/token missing, malformed, expired, wrong purpose, or already used — the invitee must be re-invited |
 | `AUTH_REFRESH_TOKEN_REUSED` | 401 | Refresh-token reuse detected, session family revoked |
 | `AUTH_OTP_INVALID` | 400 | Wrong OTP code |
 | `AUTH_OTP_EXPIRED` | 400 | OTP challenge past TTL |

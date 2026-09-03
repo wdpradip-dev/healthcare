@@ -179,6 +179,7 @@ enum OtpPurpose {
   REGISTRATION
   PASSWORD_RESET
   LOGIN_VERIFICATION
+  ACCOUNT_ACTIVATION
 }
 
 // ============================================================================

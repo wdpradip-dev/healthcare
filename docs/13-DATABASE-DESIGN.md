@@ -532,7 +532,7 @@ Indexes: `(userId)`, `familyId`, unique `tokenHash`. See [16-AUTHENTICATION.md](
 |---|---|---|
 | id | uuid | PK |
 | identifier | string | email or phone |
-| purpose | enum(`REGISTRATION`,`PASSWORD_RESET`,`LOGIN_VERIFICATION`) | |
+| purpose | enum(`REGISTRATION`,`PASSWORD_RESET`,`LOGIN_VERIFICATION`,`ACCOUNT_ACTIVATION`) | |
 | codeHash | string | |
 | attempts | int | default 0 |
 | maxAttempts | int | default 5 |

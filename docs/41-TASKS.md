@@ -56,14 +56,14 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-401 | P0 | Hospital module (Super Admin CRUD) | T-307 | api | TODO |
-| T-402 | P0 | Branch module CRUD | T-401 | api | TODO |
-| T-403 | P0 | Department module CRUD | T-402 | api | TODO |
-| T-404 | P0 | Users module: invite/activate/deactivate/list | T-307 | api | TODO |
-| T-405 | P1 | Admin console shell: sidebar/topbar, permission-driven nav, hospital switcher | T-310 | admin | TODO |
-| T-406 | P1 | Admin: Branches, Departments screens | T-402, T-403, T-405 | admin | TODO |
-| T-407 | P1 | Admin: Users screen + invite flow UI, Activate Account page (moved from Phase 3 T-310 — depends on the invite flow this phase introduces) | T-404, T-405 | admin | TODO |
-| T-408 | P2 | Tenant-isolation integration tests for Hospital/Branch/Department/User | T-401–T-404 | api | TODO |
+| T-401 | P0 | Hospital module (Super Admin CRUD) | T-307 | api | DONE |
+| T-402 | P0 | Branch module CRUD | T-401 | api | DONE |
+| T-403 | P0 | Department module CRUD | T-402 | api | DONE |
+| T-404 | P0 | Users module: invite/activate/deactivate/list | T-307 | api | DONE |
+| T-405 | P1 | Admin console shell: sidebar/topbar, permission-driven nav, hospital switcher | T-310 | admin | DONE |
+| T-406 | P1 | Admin: Branches, Departments screens | T-402, T-403, T-405 | admin | DONE |
+| T-407 | P1 | Admin: Users screen + invite flow UI, Activate Account page (moved from Phase 3 T-310 — depends on the invite flow this phase introduces) | T-404, T-405 | admin | DONE |
+| T-408 | P2 | Tenant-isolation integration tests for Hospital/Branch/Department/User | T-401–T-404 | api | DONE |
 
 ## Phase 5 — Doctor/patient management
 

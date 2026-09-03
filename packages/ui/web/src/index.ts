@@ -7,3 +7,5 @@ export { Button, type ButtonProps, type ButtonVariant } from "./button";
 export { TextField, type TextFieldProps } from "./text-field";
 export { FormAlert, type FormAlertProps, type FormAlertVariant } from "./form-alert";
 export { AuthShell, type AuthShellProps } from "./auth-shell";
+export { Modal, type ModalProps } from "./modal";
+export { SelectField, type SelectFieldProps } from "./select-field";

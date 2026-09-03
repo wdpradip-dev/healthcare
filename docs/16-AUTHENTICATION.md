@@ -36,7 +36,7 @@ Permissions are embedded in the access token at issuance for fast in-process aut
 
 1. `POST /auth/login` with identifier + password.
 2. Server looks up `User` by email/phone; generic `AUTH_INVALID_CREDENTIALS` on no-match or password-mismatch (no enumeration signal).
-3. Check `status`: `PENDING_ACTIVATION` → reject with `AUTH_ACCOUNT_PENDING_ACTIVATION` (a distinct guidance message, not a security-sensitive distinction, since the user knows they haven't activated yet); `LOCKED` → `AUTH_ACCOUNT_LOCKED` with unlock time; `DISABLED` → `AUTH_ACCOUNT_DISABLED`.
+3. Check `status`: `PENDING_ACTIVATION` → reject with `AUTH_ACCOUNT_PENDING_ACTIVATION` (a distinct guidance message, not a security-sensitive distinction, since the user knows they haven't activated yet); `LOCKED` → `AUTH_ACCOUNT_LOCKED` with unlock time; `DISABLED` → `AUTH_ACCOUNT_DISABLED`. For a staff/doctor/admin account (`hospitalId` set), also check the owning `Hospital.status`: `SUSPENDED` → reject with `AUTH_HOSPITAL_SUSPENDED`, checked after password verification (so this never becomes an account-enumeration or hospital-enumeration signal ahead of proving the credentials are even correct) — see [18-MULTI-TENANCY.md](18-MULTI-TENANCY.md) "What 'suspended' means for a Hospital."
 4. On success: reset `failedLoginAttempts`, create `DeviceSession`, issue token pair, log `AUTH_LOGIN`.
 5. On failure: increment `failedLoginAttempts`; at 5 within a rolling 15-minute window, set `lockedUntil = now + 15m` and status effectively locked.
 
@@ -53,7 +53,12 @@ A login from a `DeviceSession` with no prior history for that user triggers a "N
 
 ## Staff activation (distinct from Patient self-registration)
 
-Doctors/Nurses/Receptionists/Admins never self-register. An Admin invite (`POST /users/invite`) creates a `PENDING_ACTIVATION` user and emails a signed, time-limited (72h) activation link. The link routes to `POST /users/activate` where the invitee sets their password (OTP-verified against their email as a second factor of "this is really the invited person"). Expired links require the Admin to re-invite.
+Doctors/Nurses/Receptionists/Admins never self-register. An Admin invite (`POST /users/invite`) creates a `PENDING_ACTIVATION` user (and, for Nurse/Receptionist/Admin roles, its linked `Staff` row — see [15-API-SPECIFICATION.md](15-API-SPECIFICATION.md) `/staff`) and emails a signed, time-limited (72h) **activation token** (a JWT, RS256-signed with the same keypair as access tokens, distinguished by a `typ: "activation"` claim so it can never be accepted where an access token is expected or vice versa). The invitee's link routes to an Activate Account screen, which:
+
+1. Calls `POST /users/activate/request-otp` with the activation token to send a fresh 6-digit code to the invitee's email — a **second factor** proving live control of that inbox right now, distinct from the activation token itself (which only proves possession of the emailed link, and could be replayed from browser history/logs up to 72h later). This mirrors `/auth/forgot-password`'s two-call shape and reuses the same `OtpChallenge` mechanics (5 min TTL, 5 max attempts, 30s resend cooldown) under a dedicated `ACCOUNT_ACTIVATION` purpose, never confusable with a registration or password-reset code.
+2. Calls `POST /users/activate` with `{ activationToken, otpChallengeId, code, password }` to set the password, verify the code, and flip the user to `ACTIVE`, consuming the OTP challenge in the same transaction as the password write.
+
+An expired/invalid/already-used activation token, or an activation token whose `sub` no longer matches a `PENDING_ACTIVATION` user, is rejected with `AUTH_ACTIVATION_TOKEN_INVALID` at either step — the Admin must re-invite (issuing a fresh token) rather than the invitee retrying.
 
 ## Logout & revocation cascade
 

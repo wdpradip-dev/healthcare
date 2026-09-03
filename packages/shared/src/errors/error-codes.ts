@@ -9,6 +9,8 @@ export const ERROR_CODES = {
   AUTH_ACCOUNT_LOCKED: { httpStatus: 423 },
   AUTH_ACCOUNT_DISABLED: { httpStatus: 403 },
   AUTH_ACCOUNT_PENDING_ACTIVATION: { httpStatus: 403 },
+  AUTH_HOSPITAL_SUSPENDED: { httpStatus: 403 },
+  AUTH_ACTIVATION_TOKEN_INVALID: { httpStatus: 400 },
   AUTH_REFRESH_TOKEN_REUSED: { httpStatus: 401 },
   AUTH_OTP_INVALID: { httpStatus: 400 },
   AUTH_OTP_EXPIRED: { httpStatus: 400 },

@@ -64,7 +64,8 @@ Errors: `AUTH_INVALID_CREDENTIALS`, `AUTH_ACCOUNT_LOCKED`, `AUTH_ACCOUNT_DISABLE
 | POST | `/users/invite` | `users.manage` | Invite staff/doctor (creates `PENDING_ACTIVATION` user + email) |
 | PATCH | `/users/:id` | `users.manage` | Update (status, role assignment) |
 | POST | `/users/:id/deactivate` | `users.manage` | Deactivate + revoke sessions |
-| POST | `/users/activate` | Public (activation token) | Complete invited-user account setup |
+| POST | `/users/activate/request-otp` | Public (activation token) | Send/resend the activation OTP (mirrors `/auth/forgot-password`'s two-call shape — see [16-AUTHENTICATION.md](16-AUTHENTICATION.md) "Staff activation") |
+| POST | `/users/activate` | Public (activation token) | Complete invited-user account setup (body: `activationToken`, `otpChallengeId`, `code`, `password`) |
 
 ## `/staff`
 

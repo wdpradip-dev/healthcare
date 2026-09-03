@@ -6,6 +6,10 @@ import { JwtCommonModule } from "./common/jwt/jwt-common.module";
 import { AuditModule } from "./audit/audit.module";
 import { CommonModule } from "./common/common.module";
 import { AuthModule } from "./auth/auth.module";
+import { HospitalsModule } from "./hospitals/hospitals.module";
+import { BranchesModule } from "./branches/branches.module";
+import { DepartmentsModule } from "./departments/departments.module";
+import { UsersModule } from "./users/users.module";
 
 /**
  * Root module. Domain feature modules (patients, doctors, appointments, ...)
@@ -15,6 +19,18 @@ import { AuthModule } from "./auth/auth.module";
  * guard/filter chain) is registered first since everything else depends on it.
  */
 @Module({
-  imports: [AppConfigModule, PrismaModule, JwtCommonModule, AuditModule, CommonModule, AuthModule, HealthModule],
+  imports: [
+    AppConfigModule,
+    PrismaModule,
+    JwtCommonModule,
+    AuditModule,
+    CommonModule,
+    AuthModule,
+    HospitalsModule,
+    BranchesModule,
+    DepartmentsModule,
+    UsersModule,
+    HealthModule,
+  ],
 })
 export class AppModule {}
