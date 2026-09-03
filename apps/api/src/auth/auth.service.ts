@@ -152,8 +152,11 @@ export class AuthService {
   }
 
   async login(input: LoginInput, context: RequestContext): Promise<AuthTokens> {
+    // Overrides the client-wide passwordHash omit (packages/database/src/client.ts)
+    // — the one read path that legitimately needs it, to verify the password below.
     const user = await this.prisma.client.user.findFirst({
       where: { OR: [{ email: input.identifier }, { phone: input.identifier }] },
+      omit: { passwordHash: false },
     });
 
     // Generic failure for "no such user" — never confirm which field was wrong,

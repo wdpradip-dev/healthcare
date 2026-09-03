@@ -15,6 +15,7 @@ Repo-wide conventions so Stage 2 code is consistent across three apps and six pa
 - Database: Prisma models `PascalCase` singular, mapped to `snake_case` plural Postgres tables via `@@map`; columns `camelCase` in Prisma, `snake_case` via `@map` — see [13-DATABASE-DESIGN.md](13-DATABASE-DESIGN.md).
 - API routes: `kebab-case` plural nouns (`/lab-orders`, not `/labOrders` or `/lab_order`).
 - Permission keys: `resource.action`, always lowercase, matching the canonical list in [02-PERSONAS-AND-ROLES.md](02-PERSONAS-AND-ROLES.md) exactly — never invented ad hoc in a controller.
+- `User.passwordHash` is omitted by default on every read (`packages/database/src/client.ts`'s `createPrismaClient()` passes `omit: { user: { passwordHash: true } }`) — a query that `include`s/reads `user` never has to remember to strip it, and it can never leak into an HTTP response by accident. The one legitimate exception is `AuthService.login()`'s own password check, which explicitly opts back in per-query with `omit: { passwordHash: false }`. Never instantiate a bare `new PrismaClient()` to work around this — always go through `createPrismaClient()`.
 
 ## Folder/module structure
 

@@ -192,13 +192,32 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
   console.log(`[seed:demo] ${allDoctors.length} doctors created.`);
 
   console.log("[seed:demo] Creating patients...");
+  // registeredHospitalId/registeredBranchId (Phase 5) record which
+  // hospital's front desk registered a patient — distinct from clinical
+  // hospitalId scoping, since a Patient's own identity is never
+  // hospital-scoped (docs/18-MULTI-TENANCY.md). Most demo patients are
+  // registered somewhere so the admin Patients screen has data to show;
+  // a handful are left unregistered (both null) to demonstrate the
+  // self-registered-via-mobile-app case the doc calls out.
+  const registrationBranches = [hospitalAMain, hospitalARiverside, hospitalBNorth, hospitalBSouth];
   const allPatients: Patient[] = [];
   for (const fixed of FIXED_PATIENTS) {
-    allPatients.push(await createPatient(prisma, { ...fixed, passwordHash: demoPasswordHash, roleId: roleIdByKey.get("PATIENT")! }));
+    allPatients.push(
+      await createPatient(prisma, {
+        ...fixed,
+        passwordHash: demoPasswordHash,
+        roleId: roleIdByKey.get("PATIENT")!,
+        registeredHospitalId: hospitalA.id,
+        registeredBranchId: hospitalAMain.id,
+      }),
+    );
   }
   for (let i = 0; i < 37; i++) {
     const first = randomItem(FIRST_NAMES);
     const last = randomItem(LAST_NAMES);
+    // Every 6th patient stays unregistered (self-registered via mobile,
+    // no hospital has "claimed" them yet).
+    const registrationBranch = i % 6 === 5 ? null : registrationBranches[i % registrationBranches.length]!;
     allPatients.push(
       await createPatient(prisma, {
         firstName: first,
@@ -207,6 +226,8 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
         phone: `+1555${String(2000 + i).padStart(4, "0")}`,
         passwordHash: demoPasswordHash,
         roleId: roleIdByKey.get("PATIENT")!,
+        registeredHospitalId: registrationBranch?.hospitalId ?? null,
+        registeredBranchId: registrationBranch?.id ?? null,
       }),
     );
   }
@@ -502,6 +523,8 @@ async function createPatient(
     phone: string;
     passwordHash: string;
     roleId: string;
+    registeredHospitalId?: string | null;
+    registeredBranchId?: string | null;
   },
 ): Promise<Patient> {
   const user = await createUser(prisma, {
@@ -522,6 +545,8 @@ async function createPatient(
       country: "USA",
       emergencyContactName: fullName(randomItem(FIRST_NAMES), randomItem(LAST_NAMES)),
       emergencyContactPhone: opts.phone,
+      registeredHospitalId: opts.registeredHospitalId ?? null,
+      registeredBranchId: opts.registeredBranchId ?? null,
     },
   });
 }

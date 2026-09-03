@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
+import type { Branch, Doctor, User } from "@hospital/database";
 import { hashPassword } from "@hospital/shared";
 import { AccessTokenService } from "../src/common/jwt/access-token.service";
 import { AuthzResolverService } from "../src/auth/authz-resolver.service";
@@ -43,6 +44,82 @@ export async function createStaffUser(
     },
   });
   return user;
+}
+
+export async function createBranch(prisma: PrismaService, hospitalId: string, overrides: Partial<{ name: string }> = {}): Promise<Branch> {
+  const suffix = randomUUID().slice(0, 8);
+  return prisma.client.branch.create({
+    data: {
+      hospitalId,
+      name: overrides.name ?? `Test Branch ${suffix}`,
+      address: "1 Main St",
+      city: "Springfield",
+      state: "IL",
+      postalCode: "62701",
+      country: "USA",
+      contactPhone: "+15550000000",
+      operatingHours: {},
+    },
+  });
+}
+
+/** Phase 5 addition — createStaffUser() only provisions User+UserRole; this
+ * also creates the linked Staff row, for tests that exercise `/staff` directly
+ * rather than going through the `POST /users/invite` HTTP flow. */
+export async function createStaffMember(
+  prisma: PrismaService,
+  params: { hospitalId: string; branchId?: string | null; roleKey: "NURSE" | "RECEPTIONIST" | "ADMIN"; jobTitle?: string },
+) {
+  const user = await createStaffUser(prisma, { hospitalId: params.hospitalId, roleKey: params.roleKey });
+  const staff = await prisma.client.staff.create({
+    data: { userId: user.id, hospitalId: params.hospitalId, branchId: params.branchId ?? null, jobTitle: params.jobTitle },
+  });
+  return { user, staff };
+}
+
+/** Phase 5 addition — createStaffUser(..., roleKey: "DOCTOR") provisions the
+ * invited User+UserRole only (matching `POST /users/invite`'s own behavior,
+ * docs/15-API-SPECIFICATION.md "Create (links to invited User)"); this also
+ * attaches the Doctor profile, for tests that don't exercise `POST /doctors` itself. */
+export async function createDoctorProfile(
+  prisma: PrismaService,
+  params: { hospitalId: string },
+): Promise<{ user: Omit<User, "passwordHash">; doctor: Doctor }> {
+  const user = await createStaffUser(prisma, { hospitalId: params.hospitalId, roleKey: "DOCTOR" });
+  const doctor = await prisma.client.doctor.create({
+    data: { userId: user.id, hospitalId: params.hospitalId, qualifications: "MBBS" },
+  });
+  return { user, doctor };
+}
+
+/** Phase 5 addition — a Patient's own User is never hospital-scoped
+ * (docs/18-MULTI-TENANCY.md), so `registeredHospitalId`/`registeredBranchId`
+ * are the only tenant-adjacent fields to set up here. */
+export async function createPatientProfile(
+  prisma: PrismaService,
+  params: { registeredHospitalId?: string | null; registeredBranchId?: string | null } = {},
+) {
+  const suffix = randomUUID().slice(0, 8);
+  const role = await prisma.client.role.findFirstOrThrow({ where: { hospitalId: null, key: "PATIENT" } });
+  const passwordHash = await hashPassword("Password1");
+  const user = await prisma.client.user.create({
+    data: {
+      hospitalId: null,
+      name: `Test Patient ${suffix}`,
+      email: `patient-${suffix}@example.test`,
+      passwordHash,
+      status: "ACTIVE",
+      userRoles: { create: { roleId: role.id } },
+    },
+  });
+  const patient = await prisma.client.patient.create({
+    data: {
+      userId: user.id,
+      registeredHospitalId: params.registeredHospitalId ?? null,
+      registeredBranchId: params.registeredBranchId ?? null,
+    },
+  });
+  return { user, patient };
 }
 
 export async function signAccessTokenForUser(app: INestApplication, userId: string): Promise<string> {

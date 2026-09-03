@@ -79,3 +79,30 @@ export {
   type RequestActivationOtpInput,
   type ActivateUserInput,
 } from "./users";
+
+export {
+  createDoctorSchema,
+  updateDoctorSchema,
+  listDoctorsQuerySchema,
+  assignDoctorDepartmentSchema,
+  type CreateDoctorInput,
+  type UpdateDoctorInput,
+  type ListDoctorsQuery,
+  type AssignDoctorDepartmentInput,
+} from "./doctors";
+
+export {
+  registerPatientSchema,
+  updatePatientSchema,
+  listPatientsQuerySchema,
+  type RegisterPatientInput,
+  type UpdatePatientInput,
+  type ListPatientsQuery,
+} from "./patients";
+
+export {
+  updateStaffSchema,
+  listStaffQuerySchema,
+  type UpdateStaffInput,
+  type ListStaffQuery,
+} from "./staff";

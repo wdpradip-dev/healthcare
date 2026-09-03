@@ -10,6 +10,9 @@ import { HospitalsModule } from "./hospitals/hospitals.module";
 import { BranchesModule } from "./branches/branches.module";
 import { DepartmentsModule } from "./departments/departments.module";
 import { UsersModule } from "./users/users.module";
+import { DoctorsModule } from "./doctors/doctors.module";
+import { PatientsModule } from "./patients/patients.module";
+import { StaffModule } from "./staff/staff.module";
 
 /**
  * Root module. Domain feature modules (patients, doctors, appointments, ...)
@@ -30,6 +33,9 @@ import { UsersModule } from "./users/users.module";
     BranchesModule,
     DepartmentsModule,
     UsersModule,
+    DoctorsModule,
+    PatientsModule,
+    StaffModule,
     HealthModule,
   ],
 })

@@ -44,3 +44,6 @@ test-results/
 # Misc
 *.pem
 .vercel/
+
+# Local scratch reference (not project documentation)
+/TESTING-CREDENTIALS.txt

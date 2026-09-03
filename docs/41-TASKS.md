@@ -69,13 +69,13 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-501 | P0 | Doctor module (profile CRUD, DoctorDepartment assignment) | T-403, T-404 | api | TODO |
-| T-502 | P0 | Patient module (registration, profile CRUD, self-service endpoints) | T-307 | api | TODO |
-| T-503 | P0 | Staff module CRUD | T-402, T-404 | api | TODO |
-| T-504 | P1 | Admin: Doctors, Doctor Details screens | T-501, T-405 | admin | TODO |
-| T-505 | P1 | Admin: Staff, Staff Details screens | T-503, T-405 | admin | TODO |
-| T-506 | P1 | Admin: Patients, Patient Details (overview tab) screens | T-502, T-405 | admin | TODO |
-| T-507 | P2 | Doctor/Patient/Staff permission-matrix integration tests | T-501–T-503 | api | TODO |
+| T-501 | P0 | Doctor module (profile CRUD, DoctorDepartment assignment) | T-403, T-404 | api | DONE |
+| T-502 | P0 | Patient module (registration, profile CRUD, self-service endpoints) | T-307 | api | DONE |
+| T-503 | P0 | Staff module CRUD | T-402, T-404 | api | DONE |
+| T-504 | P1 | Admin: Doctors screen (list + create + department assign/remove; no separate Doctor Details route — see docs/42-PROJECT-STATE.md) | T-501, T-405 | admin | DONE |
+| T-505 | P1 | Admin: Staff screen (list + edit + deactivate; no separate Staff Details route) | T-503, T-405 | admin | DONE |
+| T-506 | P1 | Admin: Patients screen (list + register; no separate Patient Details route) | T-502, T-405 | admin | DONE |
+| T-507 | P2 | Doctor/Patient/Staff permission-matrix integration tests | T-501–T-503 | api | DONE |
 
 ## Phase 6 — Schedules
 

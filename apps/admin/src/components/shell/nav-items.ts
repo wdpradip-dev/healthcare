@@ -9,5 +9,8 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Branches", href: "/branches", permission: "branches.read" },
   { label: "Departments", href: "/departments", permission: "departments.read" },
+  { label: "Doctors", href: "/doctors", permission: "doctors.read" },
+  { label: "Patients", href: "/patients", permission: "patients.read" },
+  { label: "Staff", href: "/staff", permission: "staff.read" },
   { label: "Users", href: "/users", permission: "users.read" },
 ];

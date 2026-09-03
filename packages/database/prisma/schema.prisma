@@ -13,7 +13,10 @@
 //   - Columns camelCase in Prisma, snake_case in Postgres via @map
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // "omitApi" — client-constructor-level `omit` (packages/database/src/client.ts),
+  // defense-in-depth to keep `passwordHash` out of every `User` read by default.
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -205,6 +208,7 @@ model Hospital {
   roles              Role[]
   doctors            Doctor[]
   staff              Staff[]
+  registeredPatients Patient[]
   doctorSchedules    DoctorSchedule[]
   scheduleExceptions ScheduleException[]
   appointments       Appointment[]
@@ -245,6 +249,7 @@ model Branch {
   departments        Department[]
   staff              Staff[]
   scheduleExceptions ScheduleException[]
+  registeredPatients Patient[]
 
   @@index([hospitalId])
   @@index([hospitalId, status])
@@ -390,11 +395,26 @@ model Patient {
   country               String?
   emergencyContactName  String?   @map("emergency_contact_name")
   emergencyContactPhone String?   @map("emergency_contact_phone")
+  // Deliberately nullable and distinct from clinical hospitalId scoping
+  // (docs/18-MULTI-TENANCY.md "Patient identity is the one platform-level
+  // exception" — a Patient's own identity is never hospital-scoped, since
+  // they can be seen at any hospital on the platform). This pair only
+  // records which hospital/branch front-desk registered them — the
+  // "Registered Branch: X · Since ..." line on the admin Patient Details
+  // screen (docs/09-ADMIN-DESIGN-MOCKUPS.md) — and is what a Receptionist's
+  // or Admin's `GET /patients` list is scoped by. A patient who
+  // self-registers via the mobile app (not through hospital front-desk)
+  // has both null until Phase 7 appointment booking associates them with
+  // a hospital some other way.
+  registeredHospitalId  String?   @map("registered_hospital_id") @db.Uuid
+  registeredBranchId    String?   @map("registered_branch_id") @db.Uuid
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt             DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id])
+  user               User      @relation(fields: [userId], references: [id])
+  registeredHospital Hospital? @relation(fields: [registeredHospitalId], references: [id])
+  registeredBranch   Branch?   @relation(fields: [registeredBranchId], references: [id])
 
   appointments      Appointment[]
   consultations     Consultation[]
@@ -407,6 +427,8 @@ model Patient {
   imagingReports    ImagingReport[]
   documents         Document[]
 
+  @@index([registeredHospitalId])
+  @@index([registeredBranchId])
   @@map("patients")
 }
 

@@ -144,6 +144,8 @@ Unique: `(roleId, permissionId)`. Audit: `ROLE_PERMISSION_UPDATE` (custom roles 
 | addressLine1/2, city, state, postalCode, country | string? | |
 | emergencyContactName | string? | |
 | emergencyContactPhone | string? | |
+| registeredHospitalId | uuid? | FK → Hospital, nullable. Which hospital's front desk registered this patient — distinct from clinical scoping, since the Patient itself is never hospital-scoped (docs/18-MULTI-TENANCY.md). Drives a Receptionist/Admin's `GET /patients` list; null for a patient who only ever self-registered via the mobile app. |
+| registeredBranchId | uuid? | FK → Branch, nullable. Same rationale as `registeredHospitalId`, one level finer — the "Registered Branch: X · Since ..." line on the admin Patient Details screen (docs/09-ADMIN-DESIGN-MOCKUPS.md). |
 | createdAt / updatedAt / deletedAt | | |
 
 Relationships: 1:N → `Appointment`, `MedicalCondition`, `Allergy`, `Prescription` (via consultation), `Document`. Audit: `PATIENT_CREATE/UPDATE`.
