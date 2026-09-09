@@ -8,14 +8,14 @@ export type LoginActionResult =
   | {
       ok: true;
       accessToken: string;
-      user: { id: string; name: string; hospitalId: string | null; roles: string[]; permissions: string[] };
+      user: { id: string; name: string; hospitalId: string | null; roles: string[]; permissions: string[]; doctorId: string | null };
     }
   | { ok: false; code: string; message: string };
 
 interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
-  user: { id: string; name: string; hospitalId: string | null; roles: string[]; permissions: string[] };
+  user: { id: string; name: string; hospitalId: string | null; roles: string[]; permissions: string[]; doctorId: string | null };
 }
 
 export async function loginAction(input: LoginInput): Promise<LoginActionResult> {

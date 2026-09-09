@@ -13,6 +13,7 @@ import { UsersModule } from "./users/users.module";
 import { DoctorsModule } from "./doctors/doctors.module";
 import { PatientsModule } from "./patients/patients.module";
 import { StaffModule } from "./staff/staff.module";
+import { SchedulesModule } from "./schedules/schedules.module";
 
 /**
  * Root module. Domain feature modules (patients, doctors, appointments, ...)
@@ -36,6 +37,7 @@ import { StaffModule } from "./staff/staff.module";
     DoctorsModule,
     PatientsModule,
     StaffModule,
+    SchedulesModule,
     HealthModule,
   ],
 })

@@ -3,8 +3,10 @@ import type {
   CreateBranchInput,
   CreateDepartmentInput,
   CreateDoctorInput,
+  CreateScheduleExceptionInput,
   InviteUserInput,
   RegisterPatientInput,
+  ReplaceDoctorScheduleInput,
   UpdateBranchInput,
   UpdateDepartmentInput,
   UpdateDoctorInput,
@@ -179,4 +181,48 @@ export const patientsApi = {
     apiFetch<{ id: string; userId: string; status: string }>("/patients", { method: "POST", body: input, accessToken }),
   update: (accessToken: string, id: string, input: UpdatePatientInput) =>
     apiFetch<Patient>(`/patients/${id}`, { method: "PATCH", body: input, accessToken }),
+};
+
+export interface DoctorScheduleRow {
+  id: string;
+  doctorId: string;
+  departmentId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  bufferMinutes: number;
+  maxAppointments: number | null;
+  department: { id: string; name: string };
+}
+
+export interface ScheduleExceptionRow {
+  id: string;
+  doctorId: string | null;
+  type: "LEAVE" | "HOLIDAY" | "EXTENDED_HOURS" | "REDUCED_HOURS";
+  startDate: string;
+  endDate: string;
+  startTime: string | null;
+  endTime: string | null;
+  reason: string | null;
+}
+
+export interface AvailabilityResult {
+  doctorId: string;
+  days: { date: string; hasSlots: boolean; slots: { startTime: string; endTime: string }[] }[];
+}
+
+export const schedulesApi = {
+  getTemplate: (accessToken: string, doctorId: string) =>
+    apiFetch<DoctorScheduleRow[]>(`/schedules/${doctorId}`, { accessToken }),
+  replaceTemplate: (accessToken: string, doctorId: string, input: ReplaceDoctorScheduleInput) =>
+    apiFetch<DoctorScheduleRow[]>(`/schedules/${doctorId}`, { method: "PUT", body: input, accessToken }),
+  listExceptions: (accessToken: string, doctorId: string) =>
+    apiFetch<ScheduleExceptionRow[]>(`/schedules/${doctorId}/exceptions`, { accessToken }),
+  createException: (accessToken: string, doctorId: string, input: CreateScheduleExceptionInput) =>
+    apiFetch<ScheduleExceptionRow>(`/schedules/${doctorId}/exceptions`, { method: "POST", body: input, accessToken }),
+  deleteException: (accessToken: string, doctorId: string, exceptionId: string) =>
+    apiFetch<{ success: true }>(`/schedules/${doctorId}/exceptions/${exceptionId}`, { method: "DELETE", accessToken }),
+  getAvailability: (accessToken: string, doctorId: string, from: string, to: string) =>
+    apiFetch<AvailabilityResult>(`/schedules/availability?doctorId=${doctorId}&from=${from}&to=${to}`, { accessToken }),
 };

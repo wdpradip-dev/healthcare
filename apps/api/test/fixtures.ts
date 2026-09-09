@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
-import type { Branch, Doctor, User } from "@hospital/database";
+import type { Branch, Department, Doctor, HospitalSettings, User } from "@hospital/database";
 import { hashPassword } from "@hospital/shared";
 import { AccessTokenService } from "../src/common/jwt/access-token.service";
 import { AuthzResolverService } from "../src/auth/authz-resolver.service";
@@ -120,6 +120,36 @@ export async function createPatientProfile(
     },
   });
   return { user, patient };
+}
+
+/** Phase 6 addition. */
+export async function createDepartment(
+  prisma: PrismaService,
+  hospitalId: string,
+  branchId: string,
+  overrides: Partial<{ name: string }> = {},
+): Promise<Department> {
+  const suffix = randomUUID().slice(0, 8);
+  return prisma.client.department.create({
+    data: { hospitalId, branchId, name: overrides.name ?? `Test Department ${suffix}` },
+  });
+}
+
+/** Phase 6 addition — `HospitalsService.create()` now provisions this
+ * automatically via the real API, but `createHospital()` above (a direct
+ * Prisma insert, bypassing the service) does not; tests that need a valid
+ * `HospitalSettings.timezone` for availability computation call this
+ * explicitly instead of switching every existing `createHospital()` caller
+ * over to the HTTP route. */
+export async function createHospitalSettings(
+  prisma: PrismaService,
+  hospitalId: string,
+  updatedBy: string,
+  overrides: Partial<{ timezone: string }> = {},
+): Promise<HospitalSettings> {
+  return prisma.client.hospitalSettings.create({
+    data: { hospitalId, updatedBy, timezone: overrides.timezone ?? "UTC" },
+  });
 }
 
 export async function signAccessTokenForUser(app: INestApplication, userId: string): Promise<string> {

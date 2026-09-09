@@ -81,11 +81,11 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-601 | P0 | DoctorSchedule module CRUD + overlap validation | T-501 | api | TODO |
-| T-602 | P0 | ScheduleException module CRUD | T-601 | api | TODO |
-| T-603 | P0 | Availability computation service per [19-APPOINTMENT-ENGINE.md](19-APPOINTMENT-ENGINE.md) | T-601, T-602 | api | TODO |
-| T-604 | P1 | Admin: Doctor Schedules, Schedule Exceptions screens (incl. conflict-resolution flow) | T-603, T-405 | admin | TODO |
-| T-605 | P2 | Availability computation unit tests (buffer, exceptions, timezone correctness) | T-603 | api | TODO |
+| T-601 | P0 | DoctorSchedule module CRUD + overlap validation | T-501 | api | DONE |
+| T-602 | P0 | ScheduleException module CRUD | T-601 | api | DONE |
+| T-603 | P0 | Availability computation service per [19-APPOINTMENT-ENGINE.md](19-APPOINTMENT-ENGINE.md) | T-601, T-602 | api | DONE |
+| T-604 | P1 | Admin: Doctor Schedules, Schedule Exceptions screens (one combined screen, matching the mockup; conflict-resolution flow's Notify actions deferred to Phase 7 — see docs/42-PROJECT-STATE.md) | T-603, T-405 | admin | DONE |
+| T-605 | P2 | Availability computation unit tests (buffer, exceptions, timezone correctness) | T-603 | api | DONE |
 
 ## Phase 7 — Appointments
 

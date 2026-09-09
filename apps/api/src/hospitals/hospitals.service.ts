@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { DomainException } from "@hospital/shared";
 import type { CreateHospitalInput, ListHospitalsQuery, UpdateHospitalInput } from "@hospital/validation";
 import { PrismaService } from "../prisma/prisma.service";
+import type { RequestUser } from "../common/types/request-user";
 
 /**
  * Super Admin only (docs/15-API-SPECIFICATION.md "/hospitals"), operating at
@@ -33,9 +34,17 @@ export class HospitalsService {
     return hospital;
   }
 
-  async create(input: CreateHospitalInput) {
+  async create(actor: RequestUser, input: CreateHospitalInput) {
     await this.assertSlugAvailable(input.slug);
-    return this.prisma.client.hospital.create({ data: input });
+    // Every hospital needs a HospitalSettings row from birth — Phase 6's
+    // availability computation is the first thing that actually reads it
+    // (booking-policy defaults, and the new `timezone` field), and a
+    // hospital created via this route previously never got one at all.
+    return this.prisma.client.$transaction(async (tx) => {
+      const hospital = await tx.hospital.create({ data: input });
+      await tx.hospitalSettings.create({ data: { hospitalId: hospital.id, updatedBy: actor.sub } });
+      return hospital;
+    });
   }
 
   async update(id: string, input: UpdateHospitalInput) {

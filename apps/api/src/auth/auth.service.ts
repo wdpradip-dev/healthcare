@@ -30,6 +30,7 @@ export interface AuthTokens {
     hospitalId: string | null;
     roles: SystemRole[];
     permissions: string[];
+    doctorId: string | null;
   };
 }
 
@@ -296,9 +297,10 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    const [user, authz] = await Promise.all([
+    const [user, authz, doctor] = await Promise.all([
       this.prisma.client.user.findUniqueOrThrow({ where: { id: userId } }),
       this.authzResolver.resolve(userId),
+      this.prisma.client.doctor.findUnique({ where: { userId }, select: { id: true } }),
     ]);
     return {
       id: user.id,
@@ -308,6 +310,11 @@ export class AuthService {
       hospitalId: authz.hospitalId,
       roles: authz.roles,
       permissions: authz.permissions,
+      // A DOCTOR-role client needs this to call the SELF-scoped
+      // `/schedules/:doctorId` routes (Phase 6) — that role holds no
+      // `doctors.read` at all, so it has no other way to learn its own
+      // Doctor.id (docs/15-API-SPECIFICATION.md "/auth" GET /auth/me).
+      doctorId: doctor?.id ?? null,
     };
   }
 
@@ -316,6 +323,7 @@ export class AuthService {
   private async issueSession(userId: string, context: RequestContext): Promise<AuthTokens> {
     const authz = await this.authzResolver.resolve(userId);
     const user = await this.prisma.client.user.findUniqueOrThrow({ where: { id: userId } });
+    const doctor = await this.prisma.client.doctor.findUnique({ where: { userId }, select: { id: true } });
 
     const session = await this.prisma.client.deviceSession.create({
       data: {
@@ -345,7 +353,14 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: refresh.rawToken,
-      user: { id: user.id, name: user.name, hospitalId: authz.hospitalId, roles: authz.roles, permissions: authz.permissions },
+      user: {
+        id: user.id,
+        name: user.name,
+        hospitalId: authz.hospitalId,
+        roles: authz.roles,
+        permissions: authz.permissions,
+        doctorId: doctor?.id ?? null,
+      },
     };
   }
 

@@ -1007,6 +1007,11 @@ model HospitalSettings {
   maxReschedulesPerAppointment Int      @default(3) @map("max_reschedules_per_appointment")
   autoConfirmBookings          Boolean  @default(true) @map("auto_confirm_bookings")
   checkinWindowMinutes         Int      @default(30) @map("checkin_window_minutes")
+  // IANA zone (e.g. "America/Chicago") — the wall-clock times on every
+  // DoctorSchedule/ScheduleException row for this hospital's doctors are
+  // interpreted in this zone when computing availability (docs/19-APPOINTMENT-ENGINE.md,
+  // Phase 6). Defaults to UTC rather than guessing from address fields.
+  timezone                     String   @default("UTC")
   updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
   updatedBy                    String   @map("updated_by") @db.Uuid
 

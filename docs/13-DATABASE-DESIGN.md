@@ -557,10 +557,11 @@ Indexes: `(identifier, purpose)`.
 | maxReschedulesPerAppointment | int | default 3 |
 | autoConfirmBookings | boolean | default true |
 | checkinWindowMinutes | int | default 30 |
+| timezone | string | IANA zone, e.g. `America/Chicago`; default `UTC`. Added Phase 6 — the zone every `DoctorSchedule`/`ScheduleException` wall-clock time is interpreted in when computing availability ([19-APPOINTMENT-ENGINE.md](19-APPOINTMENT-ENGINE.md)). |
 | updatedAt | | |
 | updatedBy | uuid | FK → User |
 
-Audit: `SETTINGS_UPDATE`.
+Audit: `SETTINGS_UPDATE`. `POST /hospitals` (Phase 4) now also provisions this row (all defaults) in the same call — previously it did not, a gap only Phase 6's availability computation actually surfaced (nothing before it read `HospitalSettings`).
 
 ---
 

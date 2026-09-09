@@ -28,6 +28,7 @@ export async function POST() {
       hospitalId: string | null;
       roles: string[];
       permissions: string[];
+      doctorId: string | null;
     }>("/auth/me", { accessToken });
 
     return NextResponse.json({ accessToken, user });

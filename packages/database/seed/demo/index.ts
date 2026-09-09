@@ -76,7 +76,8 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
     roleId: roleIdByKey.get("ADMIN")!,
   });
   await prisma.hospitalSettings.create({
-    data: { hospitalId: hospitalA.id, updatedBy: adminA.id },
+    // Springfield, IL — Central time (Phase 6 timezone-correctness coverage).
+    data: { hospitalId: hospitalA.id, updatedBy: adminA.id, timezone: "America/Chicago" },
   });
   const adminB = await createUser(prisma, {
     name: "Marcus Bianchi",
@@ -86,7 +87,9 @@ export async function seedDemo(prisma: PrismaClient): Promise<void> {
     roleId: roleIdByKey.get("ADMIN")!,
   });
   await prisma.hospitalSettings.create({
-    data: { hospitalId: hospitalB.id, updatedBy: adminB.id },
+    // Lakeside, MI — Eastern time, deliberately a different zone than
+    // Hospital A for Phase 6 cross-timezone test coverage.
+    data: { hospitalId: hospitalB.id, updatedBy: adminB.id, timezone: "America/New_York" },
   });
 
   console.log("[seed:demo] Creating staff...");

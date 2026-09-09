@@ -17,6 +17,9 @@ export interface SessionUser {
   hospitalId: string | null;
   roles: string[];
   permissions: string[];
+  /** Own Doctor.id, null if none — Phase 6, lets a DOCTOR-role session
+   * self-target `/schedules/:doctorId` without needing `doctors.read`. */
+  doctorId: string | null;
 }
 
 interface AuthContextValue {

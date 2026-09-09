@@ -106,3 +106,16 @@ export {
   type UpdateStaffInput,
   type ListStaffQuery,
 } from "./staff";
+
+export {
+  dayScheduleBlockSchema,
+  replaceDoctorScheduleSchema,
+  createScheduleExceptionSchema,
+  listScheduleExceptionsQuerySchema,
+  availabilityQuerySchema,
+  type DayScheduleBlock,
+  type ReplaceDoctorScheduleInput,
+  type CreateScheduleExceptionInput,
+  type ListScheduleExceptionsQuery,
+  type AvailabilityQuery,
+} from "./schedules";

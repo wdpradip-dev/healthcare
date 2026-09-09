@@ -51,7 +51,7 @@ Codes are the canonical list in [28-ERROR-HANDLING.md](28-ERROR-HANDLING.md). `d
 | POST | `/auth/reset-password` | Public (OTP-verified) | – | Set new password, revoke all sessions |
 | GET | `/auth/sessions` | Authenticated | – (self) | List own active `DeviceSession`s |
 | DELETE | `/auth/sessions/:id` | Authenticated | – (self) or `users.manage` | Revoke a specific session |
-| GET | `/auth/me` | Authenticated | – (self) | Current user + roles + permissions |
+| GET | `/auth/me` | Authenticated | – (self) | Current user + roles + permissions + `doctorId` (own `Doctor.id`, null if none — Phase 6, so a Doctor-role client can call `PUT /schedules/:doctorId`/etc. for their own `SELF`-scoped schedule without needing `doctors.read`, which their role doesn't hold) |
 
 Errors: `AUTH_INVALID_CREDENTIALS`, `AUTH_ACCOUNT_LOCKED`, `AUTH_ACCOUNT_DISABLED`, `AUTH_SESSION_EXPIRED`, `AUTH_REFRESH_TOKEN_REUSED`, `AUTH_OTP_INVALID`, `AUTH_OTP_EXPIRED`, `AUTH_OTP_MAX_ATTEMPTS`, `AUTH_EMAIL_ALREADY_EXISTS`. Full auth flow: [16-AUTHENTICATION.md](16-AUTHENTICATION.md).
 
