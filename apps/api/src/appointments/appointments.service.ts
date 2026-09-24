@@ -13,7 +13,14 @@ import { assertWithinBookingWindow, type BookingPolicy } from "./appointment-pol
 import { NotificationStubService } from "./notification-stub.service";
 
 const LIST_INCLUDE = { ...APPOINTMENT_INCLUDE, department: true, branch: true } satisfies Prisma.AppointmentInclude;
-const DETAIL_INCLUDE = { ...APPOINTMENT_INCLUDE, department: true, branch: true, history: { orderBy: { performedAt: "asc" } } } satisfies Prisma.AppointmentInclude;
+const DETAIL_INCLUDE = {
+  ...APPOINTMENT_INCLUDE,
+  department: true,
+  branch: true,
+  history: { orderBy: { performedAt: "asc" } },
+  // Lets clients link straight to the consultation (Phase 8) without a second lookup.
+  consultation: { select: { id: true, status: true } },
+} satisfies Prisma.AppointmentInclude;
 
 // Same passwordHash-omit fix as AppointmentWithRelations (appointment-access.util.ts) —
 // GetPayload's static type doesn't know about the client-wide `omit` default.

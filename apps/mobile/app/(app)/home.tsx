@@ -24,6 +24,7 @@ export default function Home() {
         <Button label="Find a Doctor" onPress={() => router.push("/doctors")} />
         <Button label="Browse Departments" variant="secondary" onPress={() => router.push("/departments")} />
         <Button label="My Appointments" variant="secondary" onPress={() => router.push("/appointments")} />
+        <Button label="My Records" variant="secondary" onPress={() => router.push("/records")} />
       </View>
 
       <Button label="Log Out" variant="text" onPress={() => void clearSession()} />

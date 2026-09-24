@@ -7,17 +7,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerPatientSchema, type RegisterPatientInput } from "@hospital/validation";
 import { Button, FormAlert, Modal, TextField } from "@hospital/ui-web";
 import { useAuth } from "@/lib/auth-provider";
+import { hasPermission } from "@/lib/permissions";
 import { useHospitalScope } from "@/lib/hospital-scope";
 import { ApiError } from "@/lib/api-client";
-import { patientsApi } from "@/lib/resources";
+import { medicalRecordsApi, patientsApi, type Patient } from "@/lib/resources";
 
 /** docs/09-ADMIN-DESIGN-MOCKUPS.md "Patients" — Overview fields only; the
  * Appointments/Medical History/Documents detail tabs need Phase 6/7/8 data. */
 export default function PatientsPage() {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const { selectedHospitalId } = useHospitalScope();
   const queryClient = useQueryClient();
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [historyPatient, setHistoryPatient] = useState<Patient | null>(null);
+  const canViewHistory = hasPermission(user, "medical_records.read");
 
   const { data: patients, isLoading, isError } = useQuery({
     queryKey: ["patients", selectedHospitalId],
@@ -48,6 +51,7 @@ export default function PatientsPage() {
               <th className="py-2 pr-4 font-medium">Contact</th>
               <th className="py-2 pr-4 font-medium">Registered Branch</th>
               <th className="py-2 pr-4 font-medium">Status</th>
+              {canViewHistory ? <th className="py-2 pr-4 font-medium" /> : null}
             </tr>
           </thead>
           <tbody>
@@ -57,11 +61,20 @@ export default function PatientsPage() {
                 <td className="py-2 pr-4 text-on-surface-variant">{patient.user.email ?? patient.user.phone}</td>
                 <td className="py-2 pr-4 text-on-surface-variant">{patient.registeredBranch?.name ?? "—"}</td>
                 <td className="py-2 pr-4 text-on-surface-variant">{patient.user.status}</td>
+                {canViewHistory ? (
+                  <td className="py-2 pr-4 text-right">
+                    <button type="button" onClick={() => setHistoryPatient(patient)} className="text-sm font-medium text-primary hover:underline">
+                      Medical History
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
         </table>
       ) : null}
+
+      {historyPatient ? <MedicalHistoryModal patient={historyPatient} onClose={() => setHistoryPatient(null)} /> : null}
 
       {isRegisterOpen ? (
         <RegisterPatientModal
@@ -121,6 +134,85 @@ function RegisterPatientModal({
           Register Patient
         </Button>
       </form>
+    </Modal>
+  );
+}
+
+/** docs/09-ADMIN-DESIGN-MOCKUPS.md "Patient Details > Medical History tab
+ * (read-only oversight)" — a modal here, matching every other admin screen's
+ * list+modal convention rather than a separate Patient Details route. Reports
+ * join the timeline in Phase 9. */
+function MedicalHistoryModal({ patient, onClose }: { patient: Patient; onClose: () => void }) {
+  const { accessToken } = useAuth();
+  const enabled = Boolean(accessToken);
+
+  const records = useQuery({
+    queryKey: ["medical-records", patient.id],
+    queryFn: () => medicalRecordsApi.list(accessToken!, patient.id),
+    enabled,
+  });
+  const allergies = useQuery({
+    queryKey: ["allergies", patient.id],
+    queryFn: () => medicalRecordsApi.allergies(accessToken!, patient.id),
+    enabled,
+  });
+  const conditions = useQuery({
+    queryKey: ["conditions", patient.id],
+    queryFn: () => medicalRecordsApi.conditions(accessToken!, patient.id),
+    enabled,
+  });
+
+  return (
+    <Modal title={`Medical History — ${patient.user.name}`} onClose={onClose}>
+      <div className="flex flex-col gap-4 text-sm">
+        {records.isError ? <FormAlert variant="error">Couldn&apos;t load this patient&apos;s records.</FormAlert> : null}
+
+        <section>
+          <h3 className="mb-1 font-medium text-on-surface">Allergies</h3>
+          {allergies.data?.length ? (
+            <ul className="flex flex-col gap-1 text-on-surface-variant">
+              {allergies.data.map((a) => (
+                <li key={a.id}>
+                  {a.allergen} — {a.severity}
+                  {a.reaction ? ` (${a.reaction})` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-on-surface-variant">None recorded.</p>
+          )}
+        </section>
+
+        <section>
+          <h3 className="mb-1 font-medium text-on-surface">Conditions</h3>
+          {conditions.data?.length ? (
+            <ul className="flex flex-col gap-1 text-on-surface-variant">
+              {conditions.data.map((c) => (
+                <li key={c.id}>
+                  {c.name} — {c.status}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-on-surface-variant">None recorded.</p>
+          )}
+        </section>
+
+        <section>
+          <h3 className="mb-1 font-medium text-on-surface">Consultations</h3>
+          {records.isLoading ? <p className="text-on-surface-variant">Loading…</p> : null}
+          {records.data?.length === 0 ? <p className="text-on-surface-variant">No consultations at this hospital yet.</p> : null}
+          <ul className="flex flex-col gap-1 text-on-surface-variant">
+            {(records.data ?? []).map((r) => (
+              <li key={r.id}>
+                {r.date ? new Date(r.date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"} · Consultation ·{" "}
+                {r.doctor.name}
+                {r.diagnoses.length > 0 ? ` · ${r.diagnoses.map((d) => d.description).join(", ")}` : ""}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </Modal>
   );
 }

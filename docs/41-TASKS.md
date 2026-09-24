@@ -107,13 +107,13 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-801 | P0 | Consultation module (start/update/complete state machine) | T-704 | api | TODO |
-| T-802 | P0 | ClinicalNote, Diagnosis, Vital modules (incl. internal-note filtering) | T-801 | api | TODO |
-| T-803 | P1 | MedicalCondition, Allergy modules | T-502 | api | TODO |
-| T-804 | P1 | Admin: Consultation Workspace | T-801–T-803, T-405 | admin | TODO |
-| T-805 | P1 | Mobile: Medical Dashboard, Medical History, Consultation Details | T-801–T-803 | mobile | TODO |
-| T-806 | P1 | Admin: Patient Details medical-history tab completed | T-802, T-506 | admin | TODO |
-| T-807 | P0 | Consultation state-machine + internal-note-exclusion integration tests | T-801, T-802 | api | TODO |
+| T-801 | P0 | Consultation module (start/update/complete state machine) | T-704 | api | DONE |
+| T-802 | P0 | ClinicalNote, Diagnosis, Vital modules (incl. internal-note filtering) | T-801 | api | DONE |
+| T-803 | P1 | MedicalCondition, Allergy modules | T-502 | api | DONE |
+| T-804 | P1 | Admin: Consultation Workspace | T-801–T-803, T-405 | admin | DONE |
+| T-805 | P1 | Mobile: Medical Dashboard, Medical History, Consultation Details | T-801–T-803 | mobile | DONE |
+| T-806 | P1 | Admin: Patient Details medical-history tab completed | T-802, T-506 | admin | DONE |
+| T-807 | P0 | Consultation state-machine + internal-note-exclusion integration tests | T-801, T-802 | api | DONE |
 
 ## Phase 9 — Reports / documents
 

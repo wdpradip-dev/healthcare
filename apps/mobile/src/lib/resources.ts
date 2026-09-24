@@ -75,6 +75,7 @@ export interface AppointmentHistoryRow {
 
 export interface AppointmentDetail extends AppointmentRow {
   history: AppointmentHistoryRow[];
+  consultation: { id: string; status: "IN_PROGRESS" | "COMPLETED" } | null;
 }
 
 function buildQuery(params: Record<string, string | undefined>): string {
@@ -116,4 +117,65 @@ export const appointmentsApi = {
   checkin: (accessToken: string, id: string) => apiFetch<AppointmentRow>(`/appointments/${id}/checkin`, { method: "POST", accessToken }),
   markNoShow: (accessToken: string, id: string, input: MarkNoShowInput) =>
     apiFetch<AppointmentRow>(`/appointments/${id}/no-show`, { method: "PATCH", body: input, accessToken }),
+};
+
+export interface MedicalRecordEntry {
+  type: "CONSULTATION";
+  id: string;
+  date: string | null;
+  hospitalId: string;
+  status: "IN_PROGRESS" | "COMPLETED";
+  doctor: { id: string; name: string };
+  department: string | null;
+  diagnoses: { icd10Code: string | null; description: string }[];
+}
+
+export interface MedicalConditionRow {
+  id: string;
+  name: string;
+  status: "ACTIVE" | "RESOLVED" | "CHRONIC";
+}
+
+export interface AllergyRow {
+  id: string;
+  allergen: string;
+  reaction: string | null;
+  severity: "MILD" | "MODERATE" | "SEVERE";
+}
+
+export interface MedicalRecordsSummary {
+  patientId: string;
+  activeConditions: MedicalConditionRow[];
+  allergies: AllergyRow[];
+  consultationCount: number;
+  recentConsultations: MedicalRecordEntry[];
+  activePrescriptionCount: number;
+}
+
+export interface ConsultationDetail {
+  id: string;
+  status: "IN_PROGRESS" | "COMPLETED";
+  startedAt: string | null;
+  doctor: { id: string; user: { id: string; name: string } };
+  appointment: { id: string; startTime: string; department: { id: string; name: string } };
+  clinicalNotes: { id: string; content: string }[];
+  diagnoses: { id: string; icd10Code: string | null; description: string }[];
+  vitals: {
+    id: string;
+    bloodPressureSystolic: number | null;
+    bloodPressureDiastolic: number | null;
+    heartRate: number | null;
+    temperatureCelsius: string | null;
+    weightKg: string | null;
+    spo2: number | null;
+  }[];
+}
+
+export const medicalRecordsApi = {
+  summary: (accessToken: string) => apiFetch<MedicalRecordsSummary>("/medical-records/summary", { accessToken }),
+  list: (accessToken: string) => apiFetch<MedicalRecordEntry[]>("/medical-records", { accessToken }),
+};
+
+export const consultationsApi = {
+  getById: (accessToken: string, id: string) => apiFetch<ConsultationDetail>(`/consultations/${id}`, { accessToken }),
 };

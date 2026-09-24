@@ -125,4 +125,21 @@ describe("AppointmentDetails", () => {
     renderWithQueryClient(<AppointmentDetails />);
     expect(await screen.findByText(/could not be found/i)).toBeTruthy();
   });
+
+  it("links to the consultation once it is completed", async () => {
+    mockedGetById.mockResolvedValue(detail({ status: "COMPLETED", consultation: { id: "c1", status: "COMPLETED" } }));
+    renderWithQueryClient(<AppointmentDetails />);
+
+    fireEvent.press(await screen.findByText("View Consultation"));
+
+    expect(mockPush).toHaveBeenCalledWith("/records/consultations/c1");
+  });
+
+  it("does not offer the consultation link while it is still in progress", async () => {
+    mockedGetById.mockResolvedValue(detail({ status: "IN_PROGRESS", consultation: { id: "c1", status: "IN_PROGRESS" } }));
+    renderWithQueryClient(<AppointmentDetails />);
+
+    await screen.findByText("Dr. Sarah Patel");
+    expect(screen.queryByText("View Consultation")).toBeNull();
+  });
 });

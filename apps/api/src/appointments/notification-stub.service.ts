@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-export type AppointmentNotificationEvent = "BOOKED" | "RESCHEDULED" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW";
+export type AppointmentNotificationEvent = "BOOKED" | "RESCHEDULED" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "CONSULTATION_COMPLETED";
 
 /**
  * T-711: notification-trigger stub. The real notification system (queue +

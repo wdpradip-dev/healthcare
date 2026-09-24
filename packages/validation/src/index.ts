@@ -133,3 +133,22 @@ export {
   type MarkNoShowInput,
   type ListAppointmentsQuery,
 } from "./appointments";
+
+export {
+  startConsultationSchema,
+  vitalsInputSchema,
+  clinicalNoteInputSchema,
+  diagnosisInputSchema,
+  updateConsultationSchema,
+  listMedicalRecordsQuerySchema,
+  medicalRecordsSubjectQuerySchema,
+  createConditionSchema,
+  createAllergySchema,
+  type StartConsultationInput,
+  type VitalsInput,
+  type UpdateConsultationInput,
+  type ListMedicalRecordsQuery,
+  type MedicalRecordsSubjectQuery,
+  type CreateConditionInput,
+  type CreateAllergyInput,
+} from "./consultations";

@@ -148,6 +148,7 @@ Errors: `APPOINTMENT_CONFLICT`, `APPOINTMENT_NOT_AVAILABLE`, `APPOINTMENT_CANCEL
 | GET | `/consultations/:id` | `consultations.read` | Detail (notes, diagnoses, vitals — internal notes stripped for non-clinical viewers) |
 | POST | `/consultations` | `consultations.write` | Start (body: `appointmentId`) |
 | PATCH | `/consultations/:id` | `consultations.write` | Update notes/diagnosis/vitals (autosave) |
+| PATCH | `/consultations/:id/vitals` | `medical_records.write` | Record/update vitals (Doctor assigned, Nurse branch — the nurse's only clinical write path; idempotent per recorder so autosave never duplicates rows) |
 | POST | `/consultations/:id/complete` | `consultations.write` | Finalize |
 
 ## `/medical-records`

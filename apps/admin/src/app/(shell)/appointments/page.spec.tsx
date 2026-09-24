@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithQueryClient } from "@/lib/test-utils";
 import AppointmentsPage from "./page";
-import { appointmentsApi, doctorsApi, patientsApi, schedulesApi } from "@/lib/resources";
+import { appointmentsApi, consultationsApi, doctorsApi, patientsApi, schedulesApi } from "@/lib/resources";
 
 let mockUser = {
   id: "u1",
@@ -22,8 +22,11 @@ jest.mock("@/lib/resources", () => ({
   doctorsApi: { list: jest.fn() },
   patientsApi: { list: jest.fn() },
   schedulesApi: { getAvailability: jest.fn() },
+  consultationsApi: { start: jest.fn() },
 }));
 jest.mock("@/lib/api-client");
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({ useRouter: () => ({ push: (...args: unknown[]) => mockPush(...args) }) }));
 
 const mockedList = appointmentsApi.list as jest.Mock;
 const mockedGetById = appointmentsApi.getById as jest.Mock;
@@ -153,5 +156,34 @@ describe("AppointmentsPage", () => {
     await user.click(within(modal).getByRole("button", { name: /confirm cancel/i }));
 
     await waitFor(() => expect(mockedCancel).toHaveBeenCalledWith("token", "a1", { reason: undefined }));
+  });
+
+  it("lets a Doctor start a consultation on a checked-in appointment and opens the workspace", async () => {
+    mockUser = { ...mockUser, roles: ["DOCTOR"], permissions: ["appointments.read", "consultations.write"] };
+    mockedList.mockResolvedValue([{ ...appointmentFixture, status: "CHECKED_IN" }]);
+    mockedGetById.mockResolvedValue({ ...appointmentFixture, status: "CHECKED_IN", history: [], consultation: null });
+    (consultationsApi.start as jest.Mock).mockResolvedValue({ id: "c1" });
+    const user = userEvent.setup();
+    renderWithQueryClient(<AppointmentsPage />);
+
+    await user.click(await screen.findByText("Alice Kumar"));
+    const modal = await screen.findByRole("dialog");
+    await user.click(await within(modal).findByRole("button", { name: /start consultation/i }));
+
+    await waitFor(() => expect(consultationsApi.start).toHaveBeenCalledWith("token", "a1"));
+    expect(mockPush).toHaveBeenCalledWith("/consultations/c1");
+  });
+
+  it("offers Open Consultation (not Start) once a consultation exists", async () => {
+    mockUser = { ...mockUser, roles: ["DOCTOR"], permissions: ["appointments.read", "consultations.read", "consultations.write"] };
+    mockedList.mockResolvedValue([{ ...appointmentFixture, status: "IN_PROGRESS" }]);
+    mockedGetById.mockResolvedValue({ ...appointmentFixture, status: "IN_PROGRESS", history: [], consultation: { id: "c1", status: "IN_PROGRESS" } });
+    const user = userEvent.setup();
+    renderWithQueryClient(<AppointmentsPage />);
+
+    await user.click(await screen.findByText("Alice Kumar"));
+    const modal = await screen.findByRole("dialog");
+    expect(await within(modal).findByRole("button", { name: /open consultation/i })).toBeInTheDocument();
+    expect(within(modal).queryByRole("button", { name: /start consultation/i })).not.toBeInTheDocument();
   });
 });

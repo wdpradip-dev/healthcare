@@ -9,5 +9,6 @@ import { NotificationStubService } from "./notification-stub.service";
   imports: [SchedulesModule],
   controllers: [AppointmentsController],
   providers: [AppointmentsService, AppointmentTransitionsService, NotificationStubService],
+  exports: [NotificationStubService],
 })
 export class AppointmentsModule {}

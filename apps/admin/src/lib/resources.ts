@@ -1,8 +1,10 @@
 import type {
   AssignDoctorDepartmentInput,
   CancelAppointmentInput,
+  CreateAllergyInput,
   CreateAppointmentInput,
   CreateBranchInput,
+  CreateConditionInput,
   CreateDepartmentInput,
   CreateDoctorInput,
   CreateScheduleExceptionInput,
@@ -13,11 +15,13 @@ import type {
   ReplaceDoctorScheduleInput,
   RescheduleAppointmentInput,
   UpdateBranchInput,
+  UpdateConsultationInput,
   UpdateDepartmentInput,
   UpdateDoctorInput,
   UpdatePatientInput,
   UpdateStaffInput,
   UpdateUserInput,
+  VitalsInput,
 } from "@hospital/validation";
 import { apiFetch } from "./api-client";
 
@@ -266,6 +270,7 @@ export interface AppointmentHistoryRow {
 
 export interface AppointmentDetail extends AppointmentRow {
   history: AppointmentHistoryRow[];
+  consultation: { id: string; status: "IN_PROGRESS" | "COMPLETED" } | null;
 }
 
 function buildQuery(params: Record<string, string | undefined>): string {
@@ -325,4 +330,95 @@ export const schedulesApi = {
       `/schedules/availability?doctorId=${doctorId}&from=${from}&to=${to}${departmentId ? `&departmentId=${departmentId}` : ""}`,
       { accessToken },
     ),
+};
+
+export interface ClinicalNoteRow {
+  id: string;
+  authorId: string;
+  content: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface DiagnosisRow {
+  id: string;
+  icd10Code: string | null;
+  description: string;
+}
+
+export interface VitalRow {
+  id: string;
+  bloodPressureSystolic: number | null;
+  bloodPressureDiastolic: number | null;
+  heartRate: number | null;
+  temperatureCelsius: string | null;
+  weightKg: string | null;
+  heightCm: string | null;
+  spo2: number | null;
+  recordedBy: string;
+  recordedAt: string;
+}
+
+export interface ConsultationDetail {
+  id: string;
+  appointmentId: string;
+  hospitalId: string;
+  status: "IN_PROGRESS" | "COMPLETED";
+  startedAt: string | null;
+  completedAt: string | null;
+  doctor: { id: string; userId: string; user: { id: string; name: string } };
+  patient: { id: string; userId: string; user: { id: string; name: string } };
+  appointment: { id: string; startTime: string; department: { id: string; name: string } };
+  clinicalNotes: ClinicalNoteRow[];
+  diagnoses: DiagnosisRow[];
+  vitals: VitalRow[];
+}
+
+export const consultationsApi = {
+  getById: (accessToken: string, id: string) => apiFetch<ConsultationDetail>(`/consultations/${id}`, { accessToken }),
+  start: (accessToken: string, appointmentId: string) =>
+    apiFetch<ConsultationDetail>("/consultations", { method: "POST", body: { appointmentId }, accessToken }),
+  update: (accessToken: string, id: string, input: UpdateConsultationInput) =>
+    apiFetch<ConsultationDetail>(`/consultations/${id}`, { method: "PATCH", body: input, accessToken }),
+  updateVitals: (accessToken: string, id: string, input: VitalsInput) =>
+    apiFetch<ConsultationDetail>(`/consultations/${id}/vitals`, { method: "PATCH", body: input, accessToken }),
+  complete: (accessToken: string, id: string) =>
+    apiFetch<ConsultationDetail>(`/consultations/${id}/complete`, { method: "POST", accessToken }),
+};
+
+export interface MedicalRecordEntry {
+  type: "CONSULTATION";
+  id: string;
+  date: string | null;
+  hospitalId: string;
+  status: "IN_PROGRESS" | "COMPLETED";
+  doctor: { id: string; name: string };
+  department: string | null;
+  diagnoses: { icd10Code: string | null; description: string }[];
+}
+
+export interface MedicalConditionRow {
+  id: string;
+  name: string;
+  status: "ACTIVE" | "RESOLVED" | "CHRONIC";
+  diagnosedDate: string | null;
+  notes: string | null;
+}
+
+export interface AllergyRow {
+  id: string;
+  allergen: string;
+  reaction: string | null;
+  severity: "MILD" | "MODERATE" | "SEVERE";
+}
+
+export const medicalRecordsApi = {
+  list: (accessToken: string, patientId: string) => apiFetch<MedicalRecordEntry[]>(`/medical-records?patientId=${patientId}`, { accessToken }),
+  conditions: (accessToken: string, patientId: string) =>
+    apiFetch<MedicalConditionRow[]>(`/medical-records/conditions?patientId=${patientId}`, { accessToken }),
+  allergies: (accessToken: string, patientId: string) => apiFetch<AllergyRow[]>(`/medical-records/allergies?patientId=${patientId}`, { accessToken }),
+  createCondition: (accessToken: string, input: CreateConditionInput) =>
+    apiFetch<MedicalConditionRow>("/medical-records/conditions", { method: "POST", body: input, accessToken }),
+  createAllergy: (accessToken: string, input: CreateAllergyInput) =>
+    apiFetch<AllergyRow>("/medical-records/allergies", { method: "POST", body: input, accessToken }),
 };

@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, FormAlert, Modal, SelectField, TextField } from "@hospital/ui-web";
 import { useAuth } from "@/lib/auth-provider";
 import { hasPermission } from "@/lib/permissions";
 import { ApiError } from "@/lib/api-client";
-import { appointmentsApi, schedulesApi, type AppointmentRow, type AppointmentStatus } from "@/lib/resources";
+import { appointmentsApi, consultationsApi, schedulesApi, type AppointmentRow, type AppointmentStatus } from "@/lib/resources";
 
 export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   SCHEDULED: "Scheduled",
@@ -37,6 +38,7 @@ export function AppointmentDetailsModal({
 }) {
   const { accessToken, user } = useAuth();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [actionError, setActionError] = useState<string | null>(null);
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -77,6 +79,14 @@ export function AppointmentDetailsModal({
     onSuccess: refresh,
     onError: onActionError,
   });
+  const startConsultationMutation = useMutation({
+    mutationFn: () => consultationsApi.start(accessToken!, appointmentId),
+    onSuccess: (consultation) => {
+      onChanged();
+      router.push(`/consultations/${consultation.id}`);
+    },
+    onError: onActionError,
+  });
   const noShowMutation = useMutation({
     mutationFn: () => appointmentsApi.markNoShow(accessToken!, appointmentId, {}),
     onSuccess: refresh,
@@ -84,6 +94,12 @@ export function AppointmentDetailsModal({
   });
 
   const isActive = appointment && appointment.status !== "CANCELLED" && appointment.status !== "COMPLETED" && appointment.status !== "NO_SHOW";
+  const canStartConsultation =
+    appointment != null &&
+    appointment.status === "CHECKED_IN" &&
+    !appointment.consultation &&
+    role === "DOCTOR" &&
+    hasPermission(user, "consultations.write");
   const canCheckinNow = isActive && (appointment!.status === "SCHEDULED" || appointment!.status === "CONFIRMED");
 
   return (
@@ -137,6 +153,16 @@ export function AppointmentDetailsModal({
             {canNoShow && canCheckinNow ? (
               <Button className="w-auto" variant="secondary" onClick={() => noShowMutation.mutate()} loading={noShowMutation.isPending}>
                 Mark No-Show
+              </Button>
+            ) : null}
+            {canStartConsultation ? (
+              <Button className="w-auto" onClick={() => startConsultationMutation.mutate()} loading={startConsultationMutation.isPending}>
+                Start Consultation
+              </Button>
+            ) : null}
+            {appointment.consultation && hasPermission(user, "consultations.read") ? (
+              <Button className="w-auto" variant="secondary" onClick={() => router.push(`/consultations/${appointment.consultation!.id}`)}>
+                {appointment.consultation.status === "COMPLETED" ? "View Consultation" : role === "NURSE" ? "Record Vitals" : "Open Consultation"}
               </Button>
             ) : null}
           </div>

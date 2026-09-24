@@ -21,6 +21,7 @@ export const ERROR_CODES = {
   APPOINTMENT_CONFLICT: { httpStatus: 409 },
   APPOINTMENT_NOT_AVAILABLE: { httpStatus: 422 },
   APPOINTMENT_CANCELLED: { httpStatus: 422 },
+  CONSULTATION_STATE_INVALID: { httpStatus: 422 },
   SCHEDULE_EXCEPTION_CONFLICT: { httpStatus: 409 },
   REPORT_ACCESS_DENIED: { httpStatus: 403 },
   FILE_TOO_LARGE: { httpStatus: 413 },

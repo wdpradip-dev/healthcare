@@ -107,6 +107,9 @@ export default function AppointmentDetails() {
       {appointment.cancelReason ? <Text style={styles.lineMuted}>Cancel reason: {appointment.cancelReason}</Text> : null}
 
       <View style={styles.actions}>
+        {appointment.consultation?.status === "COMPLETED" ? (
+          <Button label="View Consultation" variant="secondary" onPress={() => router.push(`/records/consultations/${appointment.consultation!.id}`)} />
+        ) : null}
         {canCheckin ? <Button label="Check In" onPress={() => checkinMutation.mutate()} loading={checkinMutation.isPending} /> : null}
         {isActive ? (
           <View style={styles.row}>

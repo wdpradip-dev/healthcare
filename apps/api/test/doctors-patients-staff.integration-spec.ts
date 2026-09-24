@@ -5,6 +5,7 @@ import type { PrismaService } from "../src/prisma/prisma.service";
 import { PatientsService } from "../src/patients/patients.service";
 import {
   createBranch,
+  createDepartment,
   createDoctorProfile,
   createHospital,
   createPatientProfile,
@@ -37,6 +38,7 @@ describe("Doctors/Patients/Staff (integration)", () => {
   afterEach(async () => {
     await prisma.client.refreshToken.deleteMany();
     await prisma.client.deviceSession.deleteMany();
+    await prisma.client.appointment.deleteMany();
     await prisma.client.doctorDepartment.deleteMany();
     await prisma.client.doctor.deleteMany();
     await prisma.client.patient.deleteMany();
@@ -298,19 +300,39 @@ describe("Doctors/Patients/Staff (integration)", () => {
       void adminAToken;
     });
 
-    it("rejects a Doctor (ASSIGNED scope, no Appointment data yet) with an empty list and 404 on detail", async () => {
+    it("a Doctor (ASSIGNED scope) sees only patients with an appointment with them — empty list and 404 otherwise", async () => {
       const { hospitalA } = await setupTwoHospitals();
       const { doctor: doctorProfile } = await createDoctorProfile(prisma, { hospitalId: hospitalA.id });
-      const { user: patientUser, patient } = await createPatientProfile(prisma, { registeredHospitalId: hospitalA.id });
+      const { patient: unrelated } = await createPatientProfile(prisma, { registeredHospitalId: hospitalA.id });
+      const { patient: related } = await createPatientProfile(prisma, { registeredHospitalId: hospitalA.id });
       const doctorToken = await signAccessTokenForUser(app, doctorProfile.userId);
 
-      const listRes = await request(server()).get("/api/v1/patients").set("Authorization", `Bearer ${doctorToken}`);
-      expect(listRes.status).toBe(200);
-      expect(listRes.body).toEqual([]);
+      const noneYet = await request(server()).get("/api/v1/patients").set("Authorization", `Bearer ${doctorToken}`);
+      expect(noneYet.status).toBe(200);
+      expect(noneYet.body).toEqual([]);
 
-      const getRes = await request(server()).get(`/api/v1/patients/${patient.id}`).set("Authorization", `Bearer ${doctorToken}`);
-      expect(getRes.status).toBe(404);
-      void patientUser;
+      const branch = await createBranch(prisma, hospitalA.id);
+      const dept = await createDepartment(prisma, hospitalA.id, branch.id);
+      const admin = await createStaffUser(prisma, { hospitalId: hospitalA.id, roleKey: "ADMIN" });
+      await prisma.client.appointment.create({
+        data: {
+          hospitalId: hospitalA.id,
+          branchId: branch.id,
+          departmentId: dept.id,
+          doctorId: doctorProfile.id,
+          patientId: related.id,
+          startTime: new Date(Date.now() + 86_400_000),
+          endTime: new Date(Date.now() + 86_400_000 + 1_200_000),
+          createdBy: admin.id,
+        },
+      });
+
+      const listRes = await request(server()).get("/api/v1/patients").set("Authorization", `Bearer ${doctorToken}`);
+      expect(listRes.body.map((p: { id: string }) => p.id)).toEqual([related.id]);
+      const okRes = await request(server()).get(`/api/v1/patients/${related.id}`).set("Authorization", `Bearer ${doctorToken}`);
+      expect(okRes.status).toBe(200);
+      const noRes = await request(server()).get(`/api/v1/patients/${unrelated.id}`).set("Authorization", `Bearer ${doctorToken}`);
+      expect(noRes.status).toBe(404);
     });
 
     it("a Patient can read and update their own profile via /patients/me but not another patient's record via /patients/:id", async () => {

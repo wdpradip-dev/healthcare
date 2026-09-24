@@ -91,6 +91,12 @@ export class PatientsService {
     if (scope.branchId && patient.registeredBranchId !== scope.branchId) {
       throw new DomainException("NOT_FOUND", "Patient not found.");
     }
+    if (scope.doctorId) {
+      const related = await this.prisma.client.appointment.count({ where: { doctorId: scope.doctorId, patientId: patient.id } });
+      if (related === 0) {
+        throw new DomainException("NOT_FOUND", "Patient not found.");
+      }
+    }
     return patient;
   }
 
@@ -231,15 +237,13 @@ export class PatientsService {
   /**
    * Resolves the `where` filter (or a sentinel) for the caller's
    * `patients.read`/`write` scope — see docs/02-PERSONAS-AND-ROLES.md's
-   * scope matrix. `"NONE"` means "never returns rows" (Doctor, Nurse/
-   * Receptionist read is allowed but Doctor's `ASSIGNED` scope has no
-   * queryable backing data until Phase 7); `"SELF"` means "only the
+   * scope matrix. `"NONE"` means "never returns rows" (no role/actor row to scope by); `"SELF"` means "only the
    * caller's own Patient row."
    */
   private async resolveScope(
     actor: RequestUser,
     suppliedHospitalId?: string,
-  ): Promise<"NONE" | "SELF" | { where: Prisma.PatientWhereInput; hospitalId?: string; branchId?: string }> {
+  ): Promise<"NONE" | "SELF" | { where: Prisma.PatientWhereInput; hospitalId?: string; branchId?: string; doctorId?: string }> {
     const role = actor.roles[0];
     if (role === "SUPER_ADMIN") {
       const hospitalId = suppliedHospitalId;
@@ -260,9 +264,13 @@ export class PatientsService {
     if (role === "PATIENT") {
       return "SELF";
     }
-    // DOCTOR (ASSIGNED) — no Appointment/Consultation data exists yet
-    // (Phase 7), so this deliberately returns nothing rather than
-    // approximating with a broader scope. See docs/18-MULTI-TENANCY.md.
+    // DOCTOR (ASSIGNED): only patients with an actual appointment with this
+    // doctor (Phase 7 data) — never approximated with anything broader.
+    // See docs/18-MULTI-TENANCY.md.
+    if (role === "DOCTOR") {
+      const doctor = await this.prisma.client.doctor.findUnique({ where: { userId: actor.sub } });
+      return doctor ? { where: { appointments: { some: { doctorId: doctor.id } } }, doctorId: doctor.id } : "NONE";
+    }
     return "NONE";
   }
 

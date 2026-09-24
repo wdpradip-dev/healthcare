@@ -36,7 +36,7 @@ Concrete step-by-step cases implementing the critical journeys named in [30-TEST
 
 ## Consultation & clinical records
 
-- **E2E-CONSULT-01 Full consultation flow:** Check-in → doctor starts consultation → records vitals, notes, diagnosis → issues a prescription → orders a lab report → completes → appointment status `COMPLETED`, patient notified, patient-visible consultation summary excludes any `isInternal` notes.
+- **E2E-CONSULT-01 Full consultation flow** (prescription and lab-order steps land with Phase 9; Phase 8 covers check-in → start → vitals/notes/diagnosis → complete → patient-visible summary without `isInternal` notes): Check-in → doctor starts consultation → records vitals, notes, diagnosis → issues a prescription → orders a lab report → completes → appointment status `COMPLETED`, patient notified, patient-visible consultation summary excludes any `isInternal` notes.
 - **E2E-CONSULT-02 Cannot start without check-in:** Attempt `POST /consultations` against a `SCHEDULED` (not `CHECKED_IN`) appointment → rejected.
 - **E2E-CONSULT-03 Cannot complete without required content:** Attempt to complete a consultation with zero notes/diagnosis → `VALIDATION_ERROR`.
 - **E2E-CONSULT-04 Prescription immutability:** Attempt to `PATCH` an issued prescription → no such route/rejected; issuing a correction creates a new `Prescription` with `supersedesId` set, original marked `SUPERSEDED`.

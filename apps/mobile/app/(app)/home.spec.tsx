@@ -29,6 +29,8 @@ describe("Home", () => {
     expect(mockPush).toHaveBeenCalledWith("/departments");
     fireEvent.press(screen.getByText("My Appointments"));
     expect(mockPush).toHaveBeenCalledWith("/appointments");
+    fireEvent.press(screen.getByText("My Records"));
+    expect(mockPush).toHaveBeenCalledWith("/records");
   });
 
   it("logs out", () => {

@@ -23,6 +23,7 @@ jest.mock("@/lib/resources", () => ({
   schedulesApi: { getAvailability: jest.fn() },
 }));
 jest.mock("@/lib/api-client");
+jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }) }));
 
 const mockedList = appointmentsApi.list as jest.Mock;
 const mockedGetById = appointmentsApi.getById as jest.Mock;
