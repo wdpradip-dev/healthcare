@@ -152,6 +152,41 @@ export async function createHospitalSettings(
   });
 }
 
+/** Phase 7 addition — a DoctorSchedule row inserted directly (bypassing
+ * `PUT /schedules/:doctorId`, which forces `effectiveFrom = today`) so
+ * appointment-booking tests can target a fixed future date without racing
+ * "today" as the suite ages. Mirrors `toTimeValue()` in doctor-schedule.service.ts. */
+export async function createDoctorScheduleBlock(
+  prisma: PrismaService,
+  params: {
+    hospitalId: string;
+    doctorId: string;
+    departmentId: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    slotDurationMinutes?: number;
+    bufferMinutes?: number;
+    maxAppointments?: number | null;
+  },
+) {
+  return prisma.client.doctorSchedule.create({
+    data: {
+      hospitalId: params.hospitalId,
+      doctorId: params.doctorId,
+      departmentId: params.departmentId,
+      dayOfWeek: params.dayOfWeek,
+      startTime: new Date(`1970-01-01T${params.startTime}:00Z`),
+      endTime: new Date(`1970-01-01T${params.endTime}:00Z`),
+      slotDurationMinutes: params.slotDurationMinutes ?? 20,
+      bufferMinutes: params.bufferMinutes ?? 0,
+      maxAppointments: params.maxAppointments ?? null,
+      effectiveFrom: new Date("2020-01-01T00:00:00Z"),
+      effectiveTo: null,
+    },
+  });
+}
+
 export async function signAccessTokenForUser(app: INestApplication, userId: string): Promise<string> {
   const authzResolver = app.get(AuthzResolverService);
   const accessTokenService = app.get(AccessTokenService);

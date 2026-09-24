@@ -25,6 +25,7 @@ const PATIENT: RolePermissionGrant[] = [
   { permission: "appointments.create", scope: "SELF" },
   { permission: "appointments.update", scope: "SELF" },
   { permission: "appointments.cancel", scope: "SELF" },
+  { permission: "appointments.checkin", scope: "SELF" },
   { permission: "medical_records.read", scope: "SELF" },
   { permission: "prescriptions.read", scope: "SELF" },
   { permission: "reports.read", scope: "SELF" },

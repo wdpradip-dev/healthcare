@@ -91,17 +91,17 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-701 | P0 | Appointment module: booking transaction with conflict-safe insert | T-603 | api | TODO |
-| T-702 | P0 | Reschedule endpoint (atomic update) | T-701 | api | TODO |
-| T-703 | P0 | Cancel + no-show endpoints | T-701 | api | TODO |
-| T-704 | P0 | Check-in endpoint + queue numbering (`SELECT ... FOR UPDATE`) | T-701 | api | TODO |
-| T-705 | P1 | AppointmentHistory logging on every transition | T-701–T-704 | api | TODO |
-| T-706 | P0 | Concurrency integration tests (race conditions per [31-E2E-TEST-CASES.md](31-E2E-TEST-CASES.md) E2E-APPT-02) | T-701 | api | TODO |
-| T-707 | P1 | Admin: Appointments, Appointment Details, Calendar screens | T-701–T-704, T-405 | admin | TODO |
-| T-708 | P1 | Mobile: Search Doctors/Departments, Doctor Profile, Doctor Availability | T-501, T-603 | mobile | TODO |
-| T-709 | P1 | Mobile: Select Date/Time, Booking Confirmation | T-701 | mobile | TODO |
-| T-710 | P1 | Mobile: Upcoming/History, Appointment Details, Reschedule, Cancel, Check-in | T-701–T-704 | mobile | TODO |
-| T-711 | P2 | Notification-trigger stubs wired (no-op producer until Phase 10) | T-701–T-704 | api | TODO |
+| T-701 | P0 | Appointment module: booking transaction with conflict-safe insert | T-603 | api | DONE |
+| T-702 | P0 | Reschedule endpoint (atomic update) | T-701 | api | DONE |
+| T-703 | P0 | Cancel + no-show endpoints | T-701 | api | DONE |
+| T-704 | P0 | Check-in endpoint + queue numbering (`SELECT ... FOR UPDATE`) | T-701 | api | DONE |
+| T-705 | P1 | AppointmentHistory logging on every transition | T-701–T-704 | api | DONE |
+| T-706 | P0 | Concurrency integration tests (race conditions per [31-E2E-TEST-CASES.md](31-E2E-TEST-CASES.md) E2E-APPT-02) | T-701 | api | DONE |
+| T-707 | P1 | Admin: Appointments, Appointment Details, Calendar screens | T-701–T-704, T-405 | admin | DONE |
+| T-708 | P1 | Mobile: Search Doctors/Departments, Doctor Profile, Doctor Availability | T-501, T-603 | mobile | DONE |
+| T-709 | P1 | Mobile: Select Date/Time, Booking Confirmation | T-701 | mobile | DONE |
+| T-710 | P1 | Mobile: Upcoming/History, Appointment Details, Reschedule, Cancel, Check-in | T-701–T-704 | mobile | DONE |
+| T-711 | P2 | Notification-trigger stubs wired (no-op producer until Phase 10) | T-701–T-704 | api | DONE |
 
 ## Phase 8 — Consultations / medical records
 

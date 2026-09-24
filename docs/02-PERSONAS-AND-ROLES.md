@@ -61,7 +61,7 @@ settings.manage
 **Goals:** Find the right doctor, book/manage appointments with minimal friction, see my own medical history and reports, stay informed.
 
 **Permissions (scope `SELF` unless noted):**
-`patients.read` (self), `patients.write` (self, limited fields), `doctors.read` (`PLATFORM`, discovery), `departments.read` (`PLATFORM`), `branches.read` (`PLATFORM`), `schedules.read` (`PLATFORM`, availability only), `appointments.read`, `appointments.create`, `appointments.update` (reschedule own), `appointments.cancel` (own), `medical_records.read`, `prescriptions.read`, `reports.read`, `documents.read`, `documents.upload` (own pre-visit documents only), `notifications.read`.
+`patients.read` (self), `patients.write` (self, limited fields), `doctors.read` (`PLATFORM`, discovery), `departments.read` (`PLATFORM`), `branches.read` (`PLATFORM`), `schedules.read` (`PLATFORM`, availability only), `appointments.read`, `appointments.create`, `appointments.update` (reschedule own), `appointments.cancel` (own), `appointments.checkin` (own, self-service check-in), `medical_records.read`, `prescriptions.read`, `reports.read`, `documents.read`, `documents.upload` (own pre-visit documents only), `notifications.read`.
 
 **Screens:** Auth flow, Home, Doctor/Department search & profile, Booking flow, Appointments (upcoming/history/details), Medical dashboard, Medical history, Consultation details (read-only), Prescriptions, Lab/imaging reports, Documents, Notifications, Profile, Settings, Support, About/Privacy/Terms.
 

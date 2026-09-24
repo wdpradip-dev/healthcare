@@ -29,7 +29,7 @@ Every error response uses the envelope defined in [15-API-SPECIFICATION.md](15-A
 | `NOT_FOUND` | 404 | Resource doesn't exist, or exists in another tenant (never disambiguated) |
 | `APPOINTMENT_CONFLICT` | 409 | Slot already booked (lost a concurrent race) |
 | `APPOINTMENT_NOT_AVAILABLE` | 422 | Requested slot outside published availability/policy window |
-| `APPOINTMENT_CANCELLED` | 422 | Action attempted on an already-cancelled appointment |
+| `APPOINTMENT_CANCELLED` | 422 | Action attempted on an appointment already in a terminal state (`CANCELLED`, `COMPLETED`, or `NO_SHOW`) |
 | `SCHEDULE_EXCEPTION_CONFLICT` | 409 | Creating a `ScheduleException` would orphan existing non-terminal appointments in that window — docs/09-ADMIN-DESIGN-MOCKUPS.md's "Notify & Reschedule"/"Notify & Cancel" resolution flow is deferred to Phase 7 (needs `Appointment` reschedule/cancel endpoints that don't exist yet), so the save is rejected outright for now rather than silently orphaning bookings |
 | `REPORT_ACCESS_DENIED` | 403 | Report not yet released, or actor lacks scope |
 | `FILE_TOO_LARGE` | 413 | Upload exceeds size limit |

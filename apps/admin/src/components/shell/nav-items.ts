@@ -12,6 +12,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Doctors", href: "/doctors", permission: "doctors.read" },
   { label: "Doctor Schedules", href: "/doctor-schedules", permission: "schedules.read" },
   { label: "Patients", href: "/patients", permission: "patients.read" },
+  { label: "Appointments", href: "/appointments", permission: "appointments.read" },
+  { label: "Calendar", href: "/calendar", permission: "appointments.read" },
   { label: "Staff", href: "/staff", permission: "staff.read" },
   { label: "Users", href: "/users", permission: "users.read" },
 ];

@@ -250,6 +250,7 @@ model Branch {
   staff              Staff[]
   scheduleExceptions ScheduleException[]
   registeredPatients Patient[]
+  appointments       Appointment[]
 
   @@index([hospitalId])
   @@index([hospitalId, status])
@@ -578,6 +579,7 @@ model Appointment {
   deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
 
   hospital      Hospital   @relation(fields: [hospitalId], references: [id])
+  branch        Branch     @relation(fields: [branchId], references: [id])
   department    Department @relation(fields: [departmentId], references: [id])
   doctor        Doctor     @relation(fields: [doctorId], references: [id])
   patient       Patient    @relation(fields: [patientId], references: [id])

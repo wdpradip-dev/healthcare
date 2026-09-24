@@ -8,28 +8,16 @@ import { useAuth } from "@/lib/auth-context";
  * Splash — docs/08-MOBILE-DESIGN-MOCKUPS.md "Authentication > Splash". The
  * silent token check IS `AuthProvider.bootstrap()`, already running from the
  * moment the provider mounts (see app/_layout.tsx); this screen just waits
- * for it and routes. Patient Home (the authenticated destination) is built
- * starting Phase 5 — until then this shows a placeholder instead of
- * navigating into a screen that doesn't exist yet.
+ * for it and routes. `/home` (Phase 7) is a minimal authenticated entry
+ * point, not the full dashboard from the mockup — that's T-1301/Phase 13.
  */
 export default function Splash() {
   const { user, isBootstrapping } = useAuth();
 
   useEffect(() => {
     if (isBootstrapping) return;
-    if (!user) {
-      router.replace("/welcome");
-    }
+    router.replace(user ? "/home" : "/welcome");
   }, [isBootstrapping, user]);
-
-  if (!isBootstrapping && user) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome, {user.name}</Text>
-        <Text style={styles.subtitle}>Patient Home is built starting Phase 5 — see docs/42-PROJECT-STATE.md.</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>

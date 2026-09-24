@@ -119,3 +119,17 @@ export {
   type ListScheduleExceptionsQuery,
   type AvailabilityQuery,
 } from "./schedules";
+
+export {
+  appointmentStatusSchema,
+  createAppointmentSchema,
+  rescheduleAppointmentSchema,
+  cancelAppointmentSchema,
+  markNoShowSchema,
+  listAppointmentsQuerySchema,
+  type CreateAppointmentInput,
+  type RescheduleAppointmentInput,
+  type CancelAppointmentInput,
+  type MarkNoShowInput,
+  type ListAppointmentsQuery,
+} from "./appointments";

@@ -244,7 +244,7 @@ Indexes: `(doctorId, startDate, endDate)`, `(branchId, startDate, endDate)`. Aud
 |---|---|---|
 | id | uuid | PK |
 | hospitalId | uuid | denormalized |
-| branchId | uuid | denormalized |
+| branchId | uuid | FK → Branch (denormalized) |
 | departmentId | uuid | FK → Department |
 | doctorId | uuid | FK → Doctor |
 | patientId | uuid | FK → Patient |

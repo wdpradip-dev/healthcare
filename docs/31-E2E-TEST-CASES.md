@@ -25,14 +25,14 @@ Concrete step-by-step cases implementing the critical journeys named in [30-TEST
 - **E2E-APPT-03 Booking outside policy window:** Attempt to book with less than `minBookingLeadMinutes` remaining → `422 APPOINTMENT_NOT_AVAILABLE`.
 - **E2E-APPT-04 Reschedule happy path:** Reschedule a `CONFIRMED` appointment to a new open slot → old slot freed (bookable by another patient), new slot held, `rescheduleCount` incremented, `AppointmentHistory` row written.
 - **E2E-APPT-05 Reschedule cap:** Reschedule the same appointment `maxReschedulesPerAppointment` times → next attempt rejected with a validation error even though the target slot is open.
-- **E2E-APPT-06 Reschedule outside window without override:** Patient attempts reschedule inside the cancellation window → `403`; Receptionist performs the same action with `overrideReason` → succeeds, audit entry includes the reason.
+- **E2E-APPT-06 Reschedule outside window without override:** Patient attempts reschedule inside the `rescheduleWindowMinutes` window → `422 APPOINTMENT_NOT_AVAILABLE` (a policy-window violation, not a permission failure — consistent with `E2E-APPT-03`/`E2E-CHECKIN-01`'s use of the same code for the same class of rejection; an earlier version of this case said `403`, corrected in Phase 7); Receptionist performs the same action with `overrideReason` → succeeds, `AppointmentHistory` entry includes the reason.
 - **E2E-APPT-07 Cancel frees slot immediately:** Cancel a `CONFIRMED` appointment → immediately book the same slot as a different patient → succeeds.
 - **E2E-APPT-08 Cancel after check-in blocked for patient:** Patient cannot self-cancel a `CHECKED_IN` appointment; Receptionist can, with a reason.
 
 ## Check-in & queueing
 
 - **E2E-CHECKIN-01 Early check-in rejected:** Attempt check-in more than `checkinWindowMinutes` before start → `422 APPOINTMENT_NOT_AVAILABLE`.
-- **E2E-CHECKIN-02 Queue numbering under concurrency:** Multiple patients in the same department/day check in concurrently → queue numbers assigned without gaps or duplicates.
+- **E2E-CHECKIN-02 Queue numbering under concurrency:** Multiple patients in the same department/day check in concurrently → queue numbers assigned without gaps or duplicates. Phase 7's suite verifies sequential check-in numbering (1, 2, ...) against a real database; genuinely simultaneous first-two-check-ins-of-the-day concurrency is not separately proven — the `SELECT ... FOR UPDATE` implementation locks *existing* rows for that key (docs/19-APPOINTMENT-ENGINE.md), which, like the booking-cap re-check it mirrors, has nothing to lock yet when the set is empty. Unlike booking's exact-slot race (airtight via the database's own partial unique index, independent of any application-level locking), this narrower case relies on the locking strategy alone.
 
 ## Consultation & clinical records
 
