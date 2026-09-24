@@ -9,8 +9,10 @@ import { useAuth } from "@/lib/auth-provider";
 import { hasPermission } from "@/lib/permissions";
 import { ApiError } from "@/lib/api-client";
 import { consultationsApi, type ConsultationDetail } from "@/lib/resources";
+import { PrescriptionsPanel } from "@/components/consultations/prescriptions-panel";
+import { ReportsPanel } from "@/components/consultations/reports-panel";
 
-type Tab = "vitals" | "notes" | "diagnosis";
+type Tab = "vitals" | "notes" | "diagnosis" | "rx" | "reports";
 
 interface NoteDraft {
   id?: string;
@@ -64,9 +66,10 @@ function ownVitalsDraft(consultation: ConsultationDetail, userId: string): Vital
 
 /**
  * docs/09-ADMIN-DESIGN-MOCKUPS.md "Consultation Workspace". The mockup's
- * Rx and Reports tabs are Phase 9 (prescriptions/reports don't exist yet), and
- * its "ICD-10 search" needs a code catalog that isn't in the data model — the
- * Diagnosis tab takes a free-text code + description instead. Autosaves every
+ * "ICD-10 search" needs a code catalog that isn't in the data model — the
+ * Diagnosis tab takes a free-text code + description instead. The Rx and
+ * Reports tabs manage their own data (they save immediately, not with the
+ * autosaved draft) and are shown to anyone who can read those resources. Autosaves every
  * 30s while there are unsaved edits (docs/09); a Doctor edits everything, a
  * Nurse only the Vitals tab, everyone else is read-only.
  */
@@ -112,6 +115,10 @@ export default function ConsultationWorkspacePage() {
   const open = consultation?.status === "IN_PROGRESS";
   const canWriteClinical = open && role === "DOCTOR" && hasPermission(user, "consultations.write");
   const canWriteVitals = open && (role === "DOCTOR" || role === "NURSE") && hasPermission(user, "medical_records.write");
+  const canSeeRx = hasPermission(user, "prescriptions.read");
+  const canSeeReports = hasPermission(user, "reports.read");
+  const canOrderTests = role === "DOCTOR" && open && hasPermission(user, "lab_orders.write");
+  const canIssueRx = role === "DOCTOR" && hasPermission(user, "prescriptions.write");
   const vitalsInput = toVitalsInput(vitals);
   const filledNotes = notes.filter((n) => n.content.trim() !== "");
   const filledDiagnoses = diagnoses.filter((d) => d.description.trim() !== "");
@@ -206,7 +213,7 @@ export default function ConsultationWorkspacePage() {
       {!open ? <p className="text-sm text-on-surface-variant">This consultation is closed — read-only.</p> : null}
 
       <div role="tablist" className="flex gap-4 border-b border-outline/30">
-        {(["vitals", "notes", "diagnosis"] as const).map((t) => (
+        {(["vitals", "notes", "diagnosis", ...(canSeeRx ? (["rx"] as const) : []), ...(canSeeReports ? (["reports"] as const) : [])] as Tab[]).map((t) => (
           <button
             key={t}
             role="tab"
@@ -215,7 +222,7 @@ export default function ConsultationWorkspacePage() {
             onClick={() => setTab(t)}
             className={`py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-primary text-primary" : "text-on-surface-variant"}`}
           >
-            {t}
+            {t === "rx" ? "Rx" : t}
           </button>
         ))}
       </div>
@@ -323,6 +330,12 @@ export default function ConsultationWorkspacePage() {
           {diagnoses.length === 0 && !canWriteClinical ? <p className="text-on-surface-variant">No diagnosis recorded.</p> : null}
         </section>
       ) : null}
+
+      {tab === "rx" ? (
+        <PrescriptionsPanel consultationId={consultation.id} patientId={consultation.patient.id} canWrite={canIssueRx && open} />
+      ) : null}
+
+      {tab === "reports" ? <ReportsPanel consultationId={consultation.id} patientId={consultation.patient.id} canOrder={canOrderTests} /> : null}
 
       {confirmOpen ? (
         <Modal title="Complete consultation?" onClose={() => setConfirmOpen(false)}>

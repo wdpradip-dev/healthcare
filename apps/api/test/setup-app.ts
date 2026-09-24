@@ -2,7 +2,9 @@ import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
 import { seedCatalog, type PrismaClient } from "@hospital/database";
 import { AppModule } from "../src/app.module";
+import type { AiReportAssistProvider } from "@hospital/shared";
 import { PrismaService } from "../src/prisma/prisma.service";
+import { AI_REPORT_ASSIST_PROVIDER } from "../src/storage/storage.tokens";
 import { configureTestEnv } from "./test-env";
 
 /**
@@ -20,10 +22,17 @@ import { configureTestEnv } from "./test-env";
  * bucket — a false failure about test ordering, not about auth behavior,
  * which is what this suite verifies.
  */
-export async function bootstrapTestApp(): Promise<{ app: INestApplication; prisma: PrismaService }> {
+export async function bootstrapTestApp(
+  options: { aiProvider?: AiReportAssistProvider } = {},
+): Promise<{ app: INestApplication; prisma: PrismaService }> {
   configureTestEnv();
 
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  // The report pipeline's AI stage is stubbed per suite — no test ever reaches a real provider.
+  if (options.aiProvider) {
+    builder.overrideProvider(AI_REPORT_ASSIST_PROVIDER).useValue(options.aiProvider);
+  }
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();
   // Must mirror main.ts's bootstrap() exactly — a TestingModule's
   // createNestApplication() does NOT run main.ts, so anything configured

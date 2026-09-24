@@ -18,7 +18,7 @@ function vitalsLine(v: ConsultationDetail["vitals"][number]): string {
 
 /** docs/08-MOBILE-DESIGN-MOCKUPS.md "Consultation Details" — read-only. Internal
  * clinician notes never reach this screen: the API strips them for a patient.
- * The Prescriptions/Reports links are Phase 9. */
+ */
 export default function ConsultationDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { accessToken } = useAuth();

@@ -168,7 +168,8 @@ Errors: `APPOINTMENT_CONFLICT`, `APPOINTMENT_NOT_AVAILABLE`, `APPOINTMENT_CANCEL
 |---|---|---|---|
 | GET | `/prescriptions` | `prescriptions.read` | List (filters: `patientId`, `status`) |
 | GET | `/prescriptions/:id` | `prescriptions.read` | Detail |
-| POST | `/prescriptions` | `prescriptions.write` | Issue (body: `consultationId`, items[]) |
+| POST | `/prescriptions` | `prescriptions.write` | Issue (body: `consultationId`, items[], optional `supersedesId` to correct an earlier one — there is no update route) |
+| GET | `/medications` | `prescriptions.write` | Formulary autocomplete (`?query=`, active medications only) |
 | GET | `/prescriptions/:id/pdf` | `prescriptions.read` | Signed URL to generated PDF |
 
 ## `/reports` (Lab + Imaging, unified surface)
@@ -177,14 +178,15 @@ Errors: `APPOINTMENT_CONFLICT`, `APPOINTMENT_NOT_AVAILABLE`, `APPOINTMENT_CANCEL
 |---|---|---|---|
 | GET | `/reports` | `reports.read` | List (filters: `patientId`, `type=lab\|imaging`, `status`) |
 | GET | `/reports/:id` | `reports.read` | Detail |
-| POST | `/reports` | `reports.upload` | Create (raw upload against a `LabOrder`) |
+| POST | `/reports` | `reports.upload` | Create (multipart: `file` + `labOrderId`, `type=lab\|imaging`, `title`, optional structured values — raw upload against a `LabOrder`; only the ordering Doctor) |
+| PATCH | `/reports/:id` | `reports.upload` | Enter/correct structured values (`structuredValues` for lab, `findings` for imaging) — moves `RAW` → `EXTRACTED`; refused once AI-analyzed or released |
 | POST | `/reports/:id/analyze` | `reports.upload` | Trigger optional AI extraction (async, see [27-MEDICAL-AI-SAFETY.md](27-MEDICAL-AI-SAFETY.md)) |
-| POST | `/reports/:id/verify` | `reports.verify` | Human review → `RELEASED` |
+| POST | `/reports/:id/verify` | `reports.verify` | Human review → `RELEASED` (body: `aiSummaryDecision` = `ACCEPT`\|`EDIT`\|`DISCARD`, required iff the report carries an AI summary; `editedAiSummary` for `EDIT`) |
 | GET | `/reports/:id/file` | `reports.read` | Time-limited signed download URL |
 | POST | `/lab-orders` | `lab_orders.write` | Create order |
 | GET | `/lab-orders` | `lab_orders.read` | List orders |
 
-Errors: `REPORT_ACCESS_DENIED`, `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`.
+Errors: `REPORT_ACCESS_DENIED`, `REPORT_STATE_INVALID`, `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`.
 
 ## `/documents`
 
@@ -194,6 +196,8 @@ Errors: `REPORT_ACCESS_DENIED`, `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`.
 | POST | `/documents` | `documents.upload` | Upload (multipart) |
 | GET | `/documents/:id` | `documents.read` | Metadata |
 | GET | `/documents/:id/download` | `documents.read` | Signed download URL |
+
+`GET /files/:token` (`@Public`, only used when `OBJECT_STORAGE_PROVIDER=local` without an S3 endpoint) streams a file for a short-lived HMAC-signed token minted by one of the signed-URL routes above — the token is the authorization; it is never issued without a permission check first.
 
 ## `/notifications`
 

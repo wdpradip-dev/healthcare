@@ -37,7 +37,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       response.status(status).json({
         error: {
-          code: status === 404 ? "NOT_FOUND" : status === 403 ? "FORBIDDEN" : "VALIDATION_ERROR",
+          code: status === 404 ? "NOT_FOUND" : status === 403 ? "FORBIDDEN" : status === 413 ? "FILE_TOO_LARGE" : "VALIDATION_ERROR",
           message: exception.message,
         },
       });

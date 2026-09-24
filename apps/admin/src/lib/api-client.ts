@@ -54,3 +54,24 @@ export async function apiFetch<T>(
   // both shapes rather than assuming one.
   return (json.data ?? (json as unknown as T)) as T;
 }
+
+/** Multipart upload — no Content-Type header, so the browser sets the boundary itself. */
+export async function apiUpload<T>(path: string, form: FormData, accessToken: string): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "X-Client-Platform": "WEB", Authorization: `Bearer ${accessToken}` },
+    body: form,
+    cache: "no-store",
+  });
+  const json = (await response.json()) as { data?: T } & Partial<ErrorResponse>;
+  if (!response.ok) {
+    const error = json.error;
+    throw new ApiError(error?.code ?? "INTERNAL_ERROR", error?.message ?? "Something went wrong.", error?.details);
+  }
+  return (json.data ?? (json as unknown as T)) as T;
+}
+
+/** A signed-download URL may be relative to the API origin (local-disk storage) or absolute (S3-compatible). */
+export function resolveFileUrl(url: string): string {
+  return url.startsWith("/") ? `${new URL(API_BASE_URL as string).origin}${url}` : url;
+}

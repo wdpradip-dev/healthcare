@@ -1,4 +1,6 @@
 import { generateKeyPairSync } from "node:crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 /**
  * Populates every required `apiEnvSchema` variable (docs/33-ENVIRONMENT-VARIABLES.md)
@@ -29,6 +31,7 @@ export function configureTestEnv(): void {
   process.env.JWT_REFRESH_TOKEN_TTL_STAFF ??= "7d";
 
   process.env.OBJECT_STORAGE_PROVIDER ??= "local";
+  process.env.OBJECT_STORAGE_LOCAL_DIR ??= join(tmpdir(), "hospital-platform-test-storage");
   process.env.OBJECT_STORAGE_BUCKET ??= "hospital-platform-test";
   process.env.OBJECT_STORAGE_SIGNED_URL_TTL ??= "600";
 

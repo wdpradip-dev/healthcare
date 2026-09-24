@@ -119,15 +119,15 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 
 | ID | Priority | Description | Dependencies | Apps | Status |
 |---|---|---|---|---|---|
-| T-901 | P0 | Object storage abstraction (local + S3-compatible implementations) | T-104 | packages, api | TODO |
-| T-902 | P0 | Medication, Prescription, PrescriptionItem modules (immutability + supersession) | T-801 | api | TODO |
-| T-903 | P0 | LabOrder, LabReport, ImagingReport modules with full pipeline state machine | T-801, T-901 | api | TODO |
-| T-904 | P1 | AI-assist provider integration (feature-flagged, graceful absence) | T-903 | api | TODO |
-| T-905 | P0 | Document module (upload, MIME sniffing, signed URLs) | T-901 | api | TODO |
-| T-906 | P1 | Admin: Reports, Report Details, Documents screens | T-903–T-905, T-405 | admin | TODO |
-| T-907 | P1 | Mobile: Prescription List/Details, Lab/Diagnostic Reports, Report Details | T-902, T-903 | mobile | TODO |
-| T-908 | P1 | Mobile: Documents, Document Viewer | T-905 | mobile | TODO |
-| T-909 | P0 | Report pipeline gating + AI-provenance-pairing integration tests | T-903, T-904 | api | TODO |
+| T-901 | P0 | Object storage abstraction (local + S3-compatible implementations) | T-104 | packages, api | DONE |
+| T-902 | P0 | Medication, Prescription, PrescriptionItem modules (immutability + supersession) | T-801 | api | DONE |
+| T-903 | P0 | LabOrder, LabReport, ImagingReport modules with full pipeline state machine | T-801, T-901 | api | DONE |
+| T-904 | P1 | AI-assist provider integration (feature-flagged, graceful absence) | T-903 | api | DONE |
+| T-905 | P0 | Document module (upload, MIME sniffing, signed URLs) | T-901 | api | DONE |
+| T-906 | P1 | Admin: Reports, Report Details, Documents screens | T-903–T-905, T-405 | admin | DONE |
+| T-907 | P1 | Mobile: Prescription List/Details, Lab/Diagnostic Reports, Report Details | T-902, T-903 | mobile | DONE |
+| T-908 | P1 | Mobile: Documents, Document Viewer | T-905 | mobile | DONE |
+| T-909 | P0 | Report pipeline gating + AI-provenance-pairing integration tests | T-903, T-904 | api | DONE |
 
 ## Phase 10 — Notifications
 
@@ -192,4 +192,4 @@ Granular backlog underlying [40-ROADMAP.md](40-ROADMAP.md). ID scheme `T-<phase>
 | T-1505 | P0 | "Production" environment provisioned (second Vercel/Render/Supabase environment) | T-1502–T-1504 | infra | TODO |
 | T-1506 | P0 | [39-PRODUCTION-READINESS.md](39-PRODUCTION-READINESS.md) checklist executed | T-1505, T-1403 | all | TODO |
 | T-1507 | P0 | Production launch | T-1506 | all | TODO |
-| T-1508 | P0 | Replace the malware-scan mock with a real scanner implementation (e.g. ClamAV or a cloud scanning API) behind the existing hook in [21-REPORTS-AND-DOCUMENTS.md](21-REPORTS-AND-DOCUMENTS.md) — user-confirmed requirement before "production" goes live | T-905 | api | TODO |
+| T-1508 | P0 | Replace the malware-scan mock with a real scanner implementation (e.g. ClamAV or a cloud scanning API) behind the existing hook in [21-REPORTS-AND-DOCUMENTS.md](21-REPORTS-AND-DOCUMENTS.md) — user-confirmed requirement before "production" goes live | T-905 | api | DONE |

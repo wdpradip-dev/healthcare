@@ -7,6 +7,8 @@ import type {
   CreateConditionInput,
   CreateDepartmentInput,
   CreateDoctorInput,
+  CreateLabOrderInput,
+  CreatePrescriptionInput,
   CreateScheduleExceptionInput,
   InviteUserInput,
   ListAppointmentsQuery,
@@ -18,12 +20,14 @@ import type {
   UpdateConsultationInput,
   UpdateDepartmentInput,
   UpdateDoctorInput,
+  UpdateReportInput,
   UpdatePatientInput,
   UpdateStaffInput,
   UpdateUserInput,
+  VerifyReportInput,
   VitalsInput,
 } from "@hospital/validation";
-import { apiFetch } from "./api-client";
+import { apiFetch, apiUpload } from "./api-client";
 
 export interface Hospital {
   id: string;
@@ -421,4 +425,124 @@ export const medicalRecordsApi = {
     apiFetch<MedicalConditionRow>("/medical-records/conditions", { method: "POST", body: input, accessToken }),
   createAllergy: (accessToken: string, input: CreateAllergyInput) =>
     apiFetch<AllergyRow>("/medical-records/allergies", { method: "POST", body: input, accessToken }),
+};
+
+export interface MedicationRow {
+  id: string;
+  name: string;
+  genericName: string | null;
+  form: string | null;
+  strength: string | null;
+}
+
+export interface PrescriptionRow {
+  id: string;
+  consultationId: string;
+  status: "ACTIVE" | "SUPERSEDED" | "EXPIRED";
+  supersedesId: string | null;
+  issuedAt: string;
+  doctor: { id: string; user: { name: string } };
+  patient: { id: string; user: { name: string } };
+  items: {
+    id: string;
+    freeTextName: string | null;
+    dosage: string;
+    frequency: string;
+    durationDays: number | null;
+    instructions: string | null;
+    quantity: string | null;
+    medication: MedicationRow | null;
+  }[];
+}
+
+export const prescriptionsApi = {
+  medications: (accessToken: string, query: string) =>
+    apiFetch<MedicationRow[]>(`/medications?query=${encodeURIComponent(query)}`, { accessToken }),
+  list: (accessToken: string, filters: { patientId?: string } = {}) =>
+    apiFetch<PrescriptionRow[]>(`/prescriptions${filters.patientId ? `?patientId=${filters.patientId}` : ""}`, { accessToken }),
+  create: (accessToken: string, input: CreatePrescriptionInput) =>
+    apiFetch<PrescriptionRow>("/prescriptions", { method: "POST", body: input, accessToken }),
+  pdfUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/prescriptions/${id}/pdf`, { accessToken }),
+};
+
+export type ReportPipelineStatus = "RAW" | "EXTRACTED" | "AI_ANALYZED" | "HUMAN_REVIEWED" | "RELEASED";
+
+/** The AI text and its provenance are one object — never render `text` without the label (docs/27). */
+export interface AiSummary {
+  text: string;
+  aiGenerated: true;
+  reviewedBy: string | null;
+}
+
+export interface ReportRow {
+  id: string;
+  type: "lab" | "imaging";
+  title: string;
+  patientId: string;
+  patientName: string;
+  hospitalId: string;
+  labOrderId: string | null;
+  pipelineStatus: ReportPipelineStatus;
+  structuredValues: Record<string, { value: string | number; unit?: string; referenceRange?: string; flag?: string }> | null;
+  findings: string | null;
+  aiSummary: AiSummary | null;
+  verifiedAt: string | null;
+  verifiedByName: string | null;
+  releasedAt: string | null;
+  createdAt: string;
+}
+
+export interface LabOrderRow {
+  id: string;
+  consultationId: string | null;
+  testType: string;
+  priority: "ROUTINE" | "URGENT";
+  status: "ORDERED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  orderedAt: string;
+  patient: { id: string; user: { name: string } };
+}
+
+export const labOrdersApi = {
+  list: (accessToken: string, filters: { patientId?: string } = {}) =>
+    apiFetch<LabOrderRow[]>(`/lab-orders${filters.patientId ? `?patientId=${filters.patientId}` : ""}`, { accessToken }),
+  create: (accessToken: string, input: CreateLabOrderInput) =>
+    apiFetch<LabOrderRow>("/lab-orders", { method: "POST", body: input, accessToken }),
+};
+
+export const reportsApi = {
+  list: (accessToken: string, filters: { patientId?: string; type?: string; status?: string } = {}) => {
+    const params = new URLSearchParams(Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1])));
+    return apiFetch<ReportRow[]>(`/reports${params.size > 0 ? `?${params.toString()}` : ""}`, { accessToken });
+  },
+  getById: (accessToken: string, id: string) => apiFetch<ReportRow>(`/reports/${id}`, { accessToken }),
+  upload: (accessToken: string, form: FormData) => apiUpload<ReportRow>("/reports", form, accessToken),
+  update: (accessToken: string, id: string, input: UpdateReportInput) =>
+    apiFetch<ReportRow>(`/reports/${id}`, { method: "PATCH", body: input, accessToken }),
+  analyze: (accessToken: string, id: string) =>
+    apiFetch<{ report: ReportRow; aiAvailable: boolean }>(`/reports/${id}/analyze`, { method: "POST", accessToken }),
+  verify: (accessToken: string, id: string, input: VerifyReportInput) =>
+    apiFetch<ReportRow>(`/reports/${id}/verify`, { method: "POST", body: input, accessToken }),
+  fileUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/reports/${id}/file`, { accessToken }),
+};
+
+export interface DocumentRow {
+  id: string;
+  ownerPatientId: string;
+  hospitalId: string | null;
+  category: "REPORT_ATTACHMENT" | "PRESCRIPTION_PDF" | "ID_PROOF" | "INSURANCE" | "OTHER";
+  linkedEntityType: string | null;
+  linkedEntityId: string | null;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+export const documentsApi = {
+  list: (accessToken: string, filters: { patientId?: string; category?: string } = {}) => {
+    const params = new URLSearchParams(Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1])));
+    return apiFetch<DocumentRow[]>(`/documents${params.size > 0 ? `?${params.toString()}` : ""}`, { accessToken });
+  },
+  upload: (accessToken: string, form: FormData) => apiUpload<DocumentRow>("/documents", form, accessToken),
+  downloadUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/documents/${id}/download`, { accessToken }),
 };

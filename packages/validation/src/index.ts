@@ -152,3 +152,41 @@ export {
   type CreateConditionInput,
   type CreateAllergyInput,
 } from "./consultations";
+
+export {
+  prescriptionItemSchema,
+  createPrescriptionSchema,
+  listPrescriptionsQuerySchema,
+  listMedicationsQuerySchema,
+  type PrescriptionItemInput,
+  type CreatePrescriptionInput,
+  type ListPrescriptionsQuery,
+  type ListMedicationsQuery,
+} from "./prescriptions";
+
+export {
+  createLabOrderSchema,
+  listLabOrdersQuerySchema,
+  structuredValueSchema,
+  structuredValuesSchema,
+  createReportFieldsSchema,
+  updateReportSchema,
+  verifyReportSchema,
+  listReportsQuerySchema,
+  type CreateLabOrderInput,
+  type ListLabOrdersQuery,
+  type StructuredValues,
+  type CreateReportFields,
+  type UpdateReportInput,
+  type VerifyReportInput,
+  type ListReportsQuery,
+} from "./reports";
+
+export {
+  uploadableDocumentCategorySchema,
+  documentLinkTypeSchema,
+  uploadDocumentFieldsSchema,
+  listDocumentsQuerySchema,
+  type UploadDocumentFields,
+  type ListDocumentsQuery,
+} from "./documents";

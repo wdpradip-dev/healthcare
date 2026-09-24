@@ -38,6 +38,8 @@ export const apiEnvSchema = z.object({
   OBJECT_STORAGE_ACCESS_KEY_ID: z.string().optional(),
   OBJECT_STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
   OBJECT_STORAGE_SIGNED_URL_TTL: z.coerce.number().int().positive().default(600),
+  OBJECT_STORAGE_LOCAL_DIR: z.string().default("./.storage"),
+  OBJECT_STORAGE_SIGNING_SECRET: z.string().optional(),
 
   EMAIL_PROVIDER_API_KEY: z.string().min(1),
   EMAIL_FROM_ADDRESS: z.string().email(),

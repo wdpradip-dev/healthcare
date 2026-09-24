@@ -15,3 +15,5 @@ export class ApiError extends Error {
 }
 
 export const apiFetch = jest.fn();
+export const apiUpload = jest.fn();
+export const resolveFileUrl = (url: string) => url;

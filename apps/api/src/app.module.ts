@@ -16,6 +16,10 @@ import { StaffModule } from "./staff/staff.module";
 import { SchedulesModule } from "./schedules/schedules.module";
 import { AppointmentsModule } from "./appointments/appointments.module";
 import { ConsultationsModule } from "./consultations/consultations.module";
+import { DocumentsModule } from "./documents/documents.module";
+import { PrescriptionsModule } from "./prescriptions/prescriptions.module";
+import { ReportsModule } from "./reports/reports.module";
+import { StorageModule } from "./storage/storage.module";
 
 /**
  * Root module. Domain feature modules (patients, doctors, appointments, ...)
@@ -31,6 +35,7 @@ import { ConsultationsModule } from "./consultations/consultations.module";
     JwtCommonModule,
     AuditModule,
     CommonModule,
+    StorageModule,
     AuthModule,
     HospitalsModule,
     BranchesModule,
@@ -42,6 +47,9 @@ import { ConsultationsModule } from "./consultations/consultations.module";
     SchedulesModule,
     AppointmentsModule,
     ConsultationsModule,
+    PrescriptionsModule,
+    ReportsModule,
+    DocumentsModule,
     HealthModule,
   ],
 })

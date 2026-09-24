@@ -1,5 +1,5 @@
 import type { CancelAppointmentInput, CreateAppointmentInput, MarkNoShowInput, RescheduleAppointmentInput } from "@hospital/validation";
-import { apiFetch } from "./api-client";
+import { apiFetch, apiUpload } from "./api-client";
 
 export interface DoctorDepartment {
   departmentId: string;
@@ -178,4 +178,65 @@ export const medicalRecordsApi = {
 
 export const consultationsApi = {
   getById: (accessToken: string, id: string) => apiFetch<ConsultationDetail>(`/consultations/${id}`, { accessToken }),
+};
+
+export interface PrescriptionRow {
+  id: string;
+  status: "ACTIVE" | "SUPERSEDED" | "EXPIRED";
+  issuedAt: string;
+  doctor: { id: string; user: { name: string } };
+  items: {
+    id: string;
+    freeTextName: string | null;
+    dosage: string;
+    frequency: string;
+    durationDays: number | null;
+    instructions: string | null;
+    medication: { id: string; name: string; strength: string | null } | null;
+  }[];
+}
+
+export const prescriptionsApi = {
+  list: (accessToken: string) => apiFetch<PrescriptionRow[]>("/prescriptions", { accessToken }),
+  getById: (accessToken: string, id: string) => apiFetch<PrescriptionRow>(`/prescriptions/${id}`, { accessToken }),
+  pdfUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/prescriptions/${id}/pdf`, { accessToken }),
+};
+
+/** The AI text and its provenance are one object — never render `text` without the label (docs/27). */
+export interface AiSummary {
+  text: string;
+  aiGenerated: true;
+  reviewedBy: string | null;
+}
+
+export interface ReportRow {
+  id: string;
+  type: "lab" | "imaging";
+  title: string;
+  structuredValues: Record<string, { value: string | number; unit?: string; referenceRange?: string; flag?: string }> | null;
+  findings: string | null;
+  aiSummary: AiSummary | null;
+  verifiedByName: string | null;
+  releasedAt: string | null;
+}
+
+export const reportsApi = {
+  list: (accessToken: string) => apiFetch<ReportRow[]>("/reports", { accessToken }),
+  getById: (accessToken: string, id: string) => apiFetch<ReportRow>(`/reports/${id}`, { accessToken }),
+  fileUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/reports/${id}/file`, { accessToken }),
+};
+
+export interface DocumentRow {
+  id: string;
+  category: "REPORT_ATTACHMENT" | "PRESCRIPTION_PDF" | "ID_PROOF" | "INSURANCE" | "OTHER";
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+export const documentsApi = {
+  list: (accessToken: string) => apiFetch<DocumentRow[]>("/documents", { accessToken }),
+  upload: (accessToken: string, form: FormData) => apiUpload<DocumentRow>("/documents", form, accessToken),
+  downloadUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/documents/${id}/download`, { accessToken }),
 };

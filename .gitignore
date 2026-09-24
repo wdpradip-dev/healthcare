@@ -47,3 +47,6 @@ test-results/
 
 # Local scratch reference (not project documentation)
 /TESTING-CREDENTIALS.txt
+
+# Local-disk object storage (no-Docker dev/test path)
+.storage/

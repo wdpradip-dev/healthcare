@@ -12,6 +12,8 @@
     "test:integration": "jest --config jest.integration.config.cjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0",
+    "@aws-sdk/s3-request-presigner": "^3.1139.0",
     "@hospital/config": "workspace:*",
     "@hospital/database": "workspace:*",
     "@hospital/shared": "workspace:*",
@@ -34,6 +36,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/luxon": "^3.7.5",
+    "@types/multer": "^2.2.0",
     "@types/node": "^22.9.0",
     "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",

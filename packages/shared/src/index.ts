@@ -8,3 +8,4 @@ export type {
   UploadOptions,
   SignedUrlOptions,
 } from "./object-storage/storage-provider.interface";
+export type { AiReportAssistProvider, ReportAssistInput, ReportAssistResult } from "./ai/report-assist.interface";

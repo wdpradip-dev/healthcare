@@ -1,10 +1,12 @@
 # 42 — Project State
 
-**Last updated:** 2026-09-24 · **Updated by:** Phase 8 implementation
+**Last updated:** 2026-09-24 · **Updated by:** Phase 9 implementation
 
 This file is the single current-moment snapshot of where the project actually is. It is updated after every meaningful implementation milestone (per the PLAN → ... → UPDATE PROJECT STATE cycle in [40-ROADMAP.md](40-ROADMAP.md)) — if this file and a phase's task statuses in [41-TASKS.md](41-TASKS.md) ever disagree, treat that as a bug to fix immediately, not a stale-doc shrug.
 
 ## Current phase
+
+**Phase 9 — Reports / documents / prescriptions: COMPLETE (uncommitted).** All tasks `T-901`–`T-909` done (see [41-TASKS.md](41-TASKS.md)); details in the "Phase 9" section below. Next: **Phase 10** per [40-ROADMAP.md](40-ROADMAP.md). Phase 8 was committed as `1186576`.
 
 **Phase 8 — Consultations / medical records: COMPLETE.** All tasks `T-801`–`T-807` done (see [41-TASKS.md](41-TASKS.md)). Next: **Phase 9 — Reports / documents** (`T-901` onward). Phase 7 (Appointments) is committed as `39d7793`; Phase 8 is uncommitted in the working tree.
 
@@ -149,7 +151,7 @@ Partway through Phase 2, the user reversed half of the original "no GitHub" deci
 
 ## Current feature
 
-None in progress — Phase 8 is closed out. Next unit of work is Phase 9 (`T-901`: reports/documents modules).
+None in progress — Phase 9 is closed out (uncommitted). Next unit of work is Phase 10 per docs/40-ROADMAP.md.
 
 ## Known issues
 
@@ -198,3 +200,25 @@ Not started. Vercel/Render/Supabase topology and manual deployment workflow spec
 ## How to update this file
 
 After any implementation milestone in Stage 2: update "Current phase"/"Current feature," move newly-shipped items into "Completed features," update the five status sections above to reflect what's actually working locally/deployed (not just written), and log any new known issue with enough context (symptom, suspected cause if known, affected task ID) for a future session to pick it up cold.
+
+## Phase 9 — Reports, documents, prescriptions (done, uncommitted)
+
+**Storage (`T-901`)** — `StorageProvider` (packages/shared) with two implementations chosen by config in `apps/api/src/storage/`: `S3StorageProvider` (MinIO/Supabase, presigned GET) when `OBJECT_STORAGE_ENDPOINT` is set, else `LocalDiskStorageProvider` (files under `OBJECT_STORAGE_LOCAL_DIR`, HMAC-signed short-lived tokens redeemed at the `@Public` `GET /files/:token`; refused in production). Uploads go through `validateUpload`: 10MB cap, PDF/JPEG/PNG by **magic bytes** (declared type and extension ignored), malware-scan hook (mock, always clean), sanitized display name, server-generated `hospitalId/entity/uuid` keys. Multer's own size limit is set 1 byte above the cap and a 413 is mapped to `FILE_TOO_LARGE`.
+
+**Shared scope helper** — `consultations/clinical-scope.util.ts` (`resolveClinicalScope`) gives every clinical list/detail the same PATIENT-self / DOCTOR-via-appointment / NURSE-branch / ADMIN-hospital / SUPER_ADMIN-platform filter, failing closed (404). `clinical-subject.util.ts` is its single-patient counterpart (also now used by medical records).
+
+**Prescriptions (`T-902`)** — `/medications`, `/prescriptions` (list, detail, create, `/:id/pdf`). Treating Doctor only; immutable — a correction is a new row with `supersedesId`, the old row flips to `SUPERSEDED` in the same transaction, and the unique `supersedesId` index makes a concurrent double-correction a 422. A patient never sees a prescription from an in-progress consultation. PDF is hand-built (no library), stored as a `Document(PRESCRIPTION_PDF)`. Audits `PRESCRIPTION_CREATE`/`VIEW`.
+
+**Reports (`T-903`/`T-904`)** — `/lab-orders` and a unified `/reports` (lab + imaging over `LabReport`/`ImagingReport`). Forward-only pipeline `RAW → EXTRACTED → AI_ANALYZED → RELEASED`; every transition is a compare-and-set on the expected prior status; verify is the human-review step and releases in one action; a patient query can only ever match a `RELEASED` row. Only the ordering Doctor writes/analyzes/verifies. The AI summary always travels as one object `{text, aiGenerated: true, reviewedBy}`; verify requires an explicit `ACCEPT|EDIT|DISCARD` iff a summary exists (and rejects a decision when none does). AI goes through `AiReportAssistProvider`; `GroqReportAssistProvider` is the only file that knows Groq, sends only title + values/findings, and any failure means "no AI stage" (`analyze` returns `aiAvailable:false`). Audits `REPORT_VIEW/UPLOAD/UPDATE/AI_ANALYZE/VERIFY/DOWNLOAD` (decision in `REPORT_VERIFY`, provider/model in `REPORT_AI_ANALYZE`). The source file is a `Document` linked via `linkedEntityType/Id` (there is no file column on the report tables).
+
+**Documents (`T-905`)** — `/documents` (list, upload, metadata, signed download); `storageKey` never leaves the API. Patients upload only `ID_PROOF/INSURANCE/OTHER` for themselves and may link only their own appointment; Doctor/Nurse upload for a patient they have a relationship with. **Patients are not shown documents whose source is unreleased** (a report file before `RELEASED`, a prescription PDF from a draft consultation) — otherwise Documents would leak what Reports hides. Audits `DOCUMENT_UPLOAD/VIEW/DOWNLOAD`.
+
+**Admin (`T-906`)** — Rx and Reports tabs in the Consultation Workspace (add/correct medication with formulary search, order test, upload result, open report), Reports and Documents screens with nav entries, `ReportDetailsModal` (enter values, optional AI summary, decision-gated Verify & Release, non-dismissible `AiSummaryBlock` label). Omissions: no staff document-upload UI (API supports it), report list has no hospital filter for Super Admin.
+
+**Mobile (`T-907`/`T-908`)** — Prescriptions list/details (signed PDF), Reports list/details (labeled AI block), Documents (list, open via signed URL, upload via `expo-document-picker`, added as a dependency), Home + Records entry points.
+
+**Tests (`T-909`)** — API: 29 integration in `test/clinical-files.integration-spec.ts` (pipeline gating E2E-REPORT-01–04, supersession E2E-CONSULT-04, AI provenance/decision matrix, graceful AI absence, role/tenant scoping, file type/size/missing, signed-URL tamper/expiry, documents scoping and the unreleased-report leak) + 15 storage unit tests; validation 12 new; admin 15 new; mobile 6 new. Counts now: API 64 unit + 149 integration, validation 105, admin 78, mobile 55.
+
+**Security review (self-review, this phase)** found and fixed: documents surface leaking unreleased report files/draft prescription PDFs to patients (now filtered); 413 upload errors surfacing as `VALIDATION_ERROR` (now `FILE_TOO_LARGE`); `storageKey` exposure (stripped from `DocumentView`).
+
+**Known issues added** — Local-disk storage is a dev/test fallback only; the S3/MinIO provider is written but **untested against a real server** (no Docker here). The malware scanner is the mock (`T-1508` still open). Groq call is untested against the live API (stubbed in tests). Documents a patient uploads outside any appointment carry no hospital and are visible to that patient only. Integration tests need pglite restarted between spec files (pglite-socket allows 3 connections and drops after a run) — services avoid `Promise.all` fan-out of >2 queries partly for this reason.

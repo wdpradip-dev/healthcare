@@ -20,6 +20,8 @@ All variables are validated at startup via a Zod schema in `packages/config`; a 
 | `OBJECT_STORAGE_ENDPOINT` | ✓ (if `supabase`) | `https://[project-ref].supabase.co/storage/v1/s3` | Supabase Storage's S3-compatible endpoint |
 | `OBJECT_STORAGE_ACCESS_KEY_ID` / `OBJECT_STORAGE_SECRET_ACCESS_KEY` | ✓ (if `supabase`) | | Supabase Storage S3 credentials, Render environment variable only |
 | `OBJECT_STORAGE_SIGNED_URL_TTL` | ✓ | `600` (seconds) | |
+| `OBJECT_STORAGE_LOCAL_DIR` | – | `./.storage` | Only used when no `OBJECT_STORAGE_ENDPOINT` is set (the no-Docker/test path): files are kept on local disk instead of an S3-compatible store. With an endpoint set, MinIO (dev) and Supabase Storage (staging/production) both use the same S3-compatible implementation |
+| `OBJECT_STORAGE_SIGNING_SECRET` | – (required outside `NODE_ENV=test` if local-disk) | random string | HMAC key for the local-disk provider's signed download tokens |
 | `EMAIL_PROVIDER_API_KEY` | ✓ | | Render environment variable only |
 | `EMAIL_FROM_ADDRESS` | ✓ | `no-reply@hospital-platform.example` | |
 | `PUSH_PROVIDER_CREDENTIALS` | ✓ | | Expo/FCM credentials, Render environment variable only |

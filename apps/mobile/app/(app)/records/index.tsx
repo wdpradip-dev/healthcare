@@ -7,10 +7,8 @@ import { useAuth } from "@/lib/auth-context";
 import { medicalRecordsApi } from "@/lib/resources";
 import { RecordRow } from "@/components/record-row";
 
-/** docs/08-MOBILE-DESIGN-MOCKUPS.md "Medical Dashboard". Pending Reports and the
- * "All Hospitals" filter aren't shown: reports are Phase 9, and a patient can't
- * resolve hospital names (no hospitals.read). Active Prescriptions is a count
- * only until Phase 9 adds the prescription screens it links to. */
+/** docs/08-MOBILE-DESIGN-MOCKUPS.md "Medical Dashboard". The "All Hospitals"
+ * filter isn't shown: a patient can't resolve hospital names (no hospitals.read). */
 export default function MedicalDashboard() {
   const { accessToken } = useAuth();
   const { data, isLoading, isError } = useQuery({
@@ -61,7 +59,8 @@ export default function MedicalDashboard() {
         </View>
       ) : null}
 
-      <Text style={styles.body}>Active prescriptions: {data.activePrescriptionCount}</Text>
+      <Button label={`Active prescriptions: ${data.activePrescriptionCount}`} variant="secondary" onPress={() => router.push("/prescriptions")} />
+      <Button label="Lab & imaging reports" variant="secondary" onPress={() => router.push("/reports")} />
 
       <Text style={styles.sectionTitle}>Timeline</Text>
       {data.recentConsultations.length === 0 ? <Text style={styles.body}>No consultations yet.</Text> : null}
