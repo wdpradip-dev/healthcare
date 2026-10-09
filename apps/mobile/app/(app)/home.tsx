@@ -28,6 +28,7 @@ export default function Home() {
         <Button label="Prescriptions" variant="secondary" onPress={() => router.push("/prescriptions")} />
         <Button label="Lab & Imaging Reports" variant="secondary" onPress={() => router.push("/reports")} />
         <Button label="Documents" variant="secondary" onPress={() => router.push("/documents")} />
+        <Button label="Notifications" variant="secondary" onPress={() => router.push("/notifications")} />
       </View>
 
       <Button label="Log Out" variant="text" onPress={() => void clearSession()} />

@@ -198,7 +198,7 @@ export class AppointmentsService {
         return created;
       });
 
-      this.notifications.trigger("BOOKED", appointment.id);
+      await this.notifications.trigger("BOOKED", appointment.id);
       return appointment;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

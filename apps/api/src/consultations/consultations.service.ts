@@ -164,7 +164,7 @@ export class ConsultationsService {
       await tx.appointmentHistory.create({ data: { appointmentId: consultation.appointmentId, action: "COMPLETED", performedBy: actor.sub } });
     });
 
-    this.notifications.trigger("CONSULTATION_COMPLETED", consultation.appointmentId);
+    await this.notifications.trigger("CONSULTATION_COMPLETED", consultation.appointmentId);
     return this.getById(actor, id);
   }
 

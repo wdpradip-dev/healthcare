@@ -9,6 +9,8 @@ import type {
   CreateDoctorInput,
   CreateLabOrderInput,
   CreatePrescriptionInput,
+  UpdateNotificationPreferencesInput,
+  UpsertNotificationTemplateInput,
   CreateScheduleExceptionInput,
   InviteUserInput,
   ListAppointmentsQuery,
@@ -545,4 +547,38 @@ export const documentsApi = {
   },
   upload: (accessToken: string, form: FormData) => apiUpload<DocumentRow>("/documents", form, accessToken),
   downloadUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/documents/${id}/download`, { accessToken }),
+};
+
+export interface NotificationPreferences {
+  push?: boolean;
+  email?: boolean;
+  categories?: Partial<Record<"appointments" | "consultations" | "prescriptions" | "reports", boolean>>;
+}
+
+export interface DeliveryHealthRow {
+  event: string;
+  channel: "PUSH" | "EMAIL";
+  total: number;
+  sent: number;
+  failed: number;
+  queued: number;
+}
+
+export interface NotificationTemplateRow {
+  key: string;
+  channel: "PUSH" | "EMAIL" | "IN_APP";
+  subject: string | null;
+  body: string;
+  isDefault: boolean;
+  updatedAt: string | null;
+}
+
+export const notificationsApi = {
+  preferences: (accessToken: string) => apiFetch<NotificationPreferences>("/notifications/preferences", { accessToken }),
+  updatePreferences: (accessToken: string, input: UpdateNotificationPreferencesInput) =>
+    apiFetch<NotificationPreferences>("/notifications/preferences", { method: "PATCH", body: input, accessToken }),
+  health: (accessToken: string) => apiFetch<DeliveryHealthRow[]>("/notifications/health", { accessToken }),
+  templates: (accessToken: string) => apiFetch<NotificationTemplateRow[]>("/notifications/templates", { accessToken }),
+  upsertTemplate: (accessToken: string, key: string, input: UpsertNotificationTemplateInput) =>
+    apiFetch<NotificationTemplateRow>(`/notifications/templates/${key}`, { method: "PUT", body: input, accessToken }),
 };

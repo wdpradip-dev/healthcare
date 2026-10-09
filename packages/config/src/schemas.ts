@@ -42,6 +42,7 @@ export const apiEnvSchema = z.object({
   OBJECT_STORAGE_SIGNING_SECRET: z.string().optional(),
 
   EMAIL_PROVIDER_API_KEY: z.string().min(1),
+  EMAIL_PROVIDER_ENDPOINT: optionalUrl,
   EMAIL_FROM_ADDRESS: z.string().email(),
   PUSH_PROVIDER_CREDENTIALS: z.string().min(1),
   SMS_PROVIDER_API_KEY: z.string().optional(),
@@ -50,7 +51,8 @@ export const apiEnvSchema = z.object({
   GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
 
   RATE_LIMIT_REDIS_URL: optionalUrl,
-  QUEUE_BACKEND_URL: z.string().url(),
+  // Unset -> InProcessNotificationQueue (no-Docker dev/test path), refused in production. See docs/33.
+  QUEUE_BACKEND_URL: optionalUrl,
 
   CORS_ALLOWED_ORIGINS: z
     .string()

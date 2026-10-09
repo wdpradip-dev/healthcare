@@ -23,13 +23,14 @@ All variables are validated at startup via a Zod schema in `packages/config`; a 
 | `OBJECT_STORAGE_LOCAL_DIR` | – | `./.storage` | Only used when no `OBJECT_STORAGE_ENDPOINT` is set (the no-Docker/test path): files are kept on local disk instead of an S3-compatible store. With an endpoint set, MinIO (dev) and Supabase Storage (staging/production) both use the same S3-compatible implementation |
 | `OBJECT_STORAGE_SIGNING_SECRET` | – (required outside `NODE_ENV=test` if local-disk) | random string | HMAC key for the local-disk provider's signed download tokens |
 | `EMAIL_PROVIDER_API_KEY` | ✓ | | Render environment variable only |
+| `EMAIL_PROVIDER_ENDPOINT` | ✓ (outside `NODE_ENV=test`) | `https://api.[vendor].com/v1/emails` | The transactional email vendor's send endpoint — docs/22-NOTIFICATIONS.md deliberately doesn't name a vendor (`EmailProvider` in `packages/shared` is provider-agnostic); `HttpEmailProvider` POSTs `{from, to, subject, html}` with a Bearer `EMAIL_PROVIDER_API_KEY`, matching most transactional-email APIs' shape closely enough to point at directly or adapt. Unset outside tests: email delivery is skipped (logged), matching Groq's graceful-absence pattern — the in-app `Notification` row is unaffected |
 | `EMAIL_FROM_ADDRESS` | ✓ | `no-reply@hospital-platform.example` | |
-| `PUSH_PROVIDER_CREDENTIALS` | ✓ | | Expo/FCM credentials, Render environment variable only |
-| `SMS_PROVIDER_API_KEY` | – | | Post-MVP, unset disables the SMS channel gracefully |
+| `PUSH_PROVIDER_CREDENTIALS` | ✓ | | Expo access token for the Expo Push API (docs/22 names Expo as the push vendor) |
+| `SMS_PROVIDER_API_KEY` | – | | Post-MVP, unset disables the SMS channel gracefully — no concrete `SmsProvider` implementation exists yet, only the interface |
 | `GROQ_API_KEY` | – | | AI report-assist provider ([ADR-012](43-ARCHITECTURE-DECISIONS.md)); unset disables the `AI_ANALYZED` pipeline stage entirely, pipeline still functions (see [27-MEDICAL-AI-SAFETY.md](27-MEDICAL-AI-SAFETY.md) failure behavior) |
 | `GROQ_MODEL` | – | `llama-3.3-70b-versatile` | Recorded in audit `REPORT_AI_ANALYZE` entries; swappable without code changes via the provider abstraction |
 | `RATE_LIMIT_REDIS_URL` | ✓ (staging/"production") | `redis://...` | Distributed rate-limit counters across horizontally-scaled Render instances; local dev may use an in-memory limiter instead. A managed Redis add-on (e.g. Render's own Key Value service) is the natural choice, keeping the hosting footprint to the three platforms already in use (Vercel/Render/Supabase) rather than adding a fourth account |
-| `QUEUE_BACKEND_URL` | ✓ | `redis://...` | Job queue connection, see [ADR-009](43-ARCHITECTURE-DECISIONS.md) — same Redis instance as rate limiting is sufficient at this project's scale |
+| `QUEUE_BACKEND_URL` | ✓ (outside `NODE_ENV=test`/no-Docker dev) | `redis://...` | Job queue connection, see [ADR-009](43-ARCHITECTURE-DECISIONS.md) — same Redis instance as rate limiting is sufficient at this project's scale. Unset: falls back to `InProcessNotificationQueue` (jobs run immediately, in-process, no Redis) — the same no-Docker dev/test path `OBJECT_STORAGE_LOCAL_DIR` takes for storage; refused in production |
 | `CORS_ALLOWED_ORIGINS` | ✓ | `https://hospital-platform-admin.vercel.app` | Comma-separated allow-list, never `*` |
 | `LOG_LEVEL` | ✓ | `info` | See [35-MONITORING-AND-OBSERVABILITY.md](35-MONITORING-AND-OBSERVABILITY.md) |
 | `SENTRY_DSN` (or equivalent APM) | – | | Error tracking, optional but recommended in staging/"production" |
@@ -37,7 +38,7 @@ All variables are validated at startup via a Zod schema in `packages/config`; a 
 
 ## `apps/worker`
 
-Shares the `apps/api` environment (same `.env` in local dev; same secret set in staging/prod) since it needs the database, queue, storage, and provider credentials to process jobs.
+Not a separate pnpm package (docs/12-MONOREPO-STRUCTURE.md's `apps/api/src/jobs/` holds the queue processors) — "the worker" is `apps/api` started with a different entrypoint (`pnpm --filter api worker`, `node dist/jobs/worker.main.js` in production), consuming the same BullMQ queue the API process enqueues to. It shares the `apps/api` environment (same `.env` in local dev; same secret set in staging/prod) since it needs the database, queue, storage, and provider credentials to process jobs. Render runs it as a separate Background Worker service built from the same `apps/api` Dockerfile with a different start command (docs/32-DEPLOYMENT.md).
 
 ## `apps/admin`
 

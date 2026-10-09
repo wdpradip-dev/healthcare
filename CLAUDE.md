@@ -58,7 +58,8 @@ pnpm quality                    # lint + typecheck + unit + integration + auth/t
 pnpm db:migrate                 # Prisma migrate dev (local)
 pnpm db:migrate:deploy          # Prisma migrate deploy (staging/production, manual step per docs/32)
 pnpm db:seed                    # seed catalog + demo data (demo seed refuses to run if NODE_ENV=production)
-docker compose up -d postgres object-storage   # local Postgres + MinIO (stands in for Supabase locally)
+docker compose up -d postgres object-storage queue   # local Postgres + MinIO + Redis (stand in for Supabase/queue locally)
+pnpm --filter api worker         # run the notification queue worker (same codebase, different entrypoint — see docs/33)
 ```
 
 ## Conventions

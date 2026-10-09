@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import type { OtpChallenge, OtpPurpose } from "@hospital/database";
 import { DomainException, hashPassword, verifyPassword } from "@hospital/shared";
 import { PrismaService } from "../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { maskIdentifier } from "./mask-identifier.util";
 
 const OTP_TTL_MINUTES = 5;
@@ -21,7 +22,10 @@ export class OtpService {
   private readonly logger = new Logger(OtpService.name);
   private readonly lastDeliveredCodeByIdentifier = new Map<string, string>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async createChallenge(identifier: string, purpose: OtpPurpose): Promise<{ challenge: OtpChallenge; code: string }> {
     const code = generateCode();
@@ -109,17 +113,23 @@ export class OtpService {
   }
 
   /**
-   * Delivery stub. Real email/SMS delivery is the notification system built
-   * in Phase 10 (docs/22-NOTIFICATIONS.md) — OTP delivery is a transactional
-   * send that bypasses user preferences there. Until that queue/provider
-   * exists, this logs the code so local development and manual testing can
-   * proceed; it is never acceptable in a real deployment and is called out
-   * explicitly in docs/42-PROJECT-STATE.md as a known gap to close before then.
+   * Phase 10 (docs/22-NOTIFICATIONS.md): a transactional send that bypasses
+   * user preferences and the User/`Notification` row plumbing entirely (an
+   * OTP challenge predates account creation during registration, so there is
+   * often no `User` row yet to attach a preference check or inbox row to).
+   * An email-shaped identifier is queued through `NotificationsService`;
+   * SMS has no provider wired (docs/22 "Channels", Post-MVP) so a
+   * phone-shaped identifier still only logs, same as before Phase 10 — this
+   * dev-log + in-memory map (outside production) is also how integration
+   * tests complete an OTP flow, since `codeHash` is one-way.
    */
   private deliver(identifier: string, code: string): void {
     this.logger.warn(`[DEV ONLY] OTP for ${maskIdentifier(identifier)}: ${code}`);
     if (process.env.NODE_ENV !== "production") {
       this.lastDeliveredCodeByIdentifier.set(identifier, code);
+    }
+    if (identifier.includes("@")) {
+      void this.notifications.sendOtpEmail(identifier, code).catch(() => undefined);
     }
   }
 

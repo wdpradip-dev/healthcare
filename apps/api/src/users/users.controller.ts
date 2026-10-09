@@ -21,7 +21,7 @@ import { Audit } from "../audit/audit.decorator";
 import { AuditInterceptor } from "../audit/audit.interceptor";
 import type { RequestUser } from "../common/types/request-user";
 import type { RequestContext } from "../auth/auth.service";
-import { UsersService } from "./users.service";
+import { UsersService, type UserWithRelations } from "./users.service";
 
 /** docs/15-API-SPECIFICATION.md "/users". Route order matters: the two
  * `/activate*` routes must be declared ahead of `:id` so Nest doesn't treat
@@ -48,13 +48,13 @@ export class UsersController {
 
   @RequirePermission("users.read")
   @Get()
-  list(@CurrentUser() actor: RequestUser, @Query(new ZodValidationPipe(listUsersQuerySchema)) query: ListUsersQuery) {
+  list(@CurrentUser() actor: RequestUser, @Query(new ZodValidationPipe(listUsersQuerySchema)) query: ListUsersQuery): Promise<UserWithRelations[]> {
     return this.usersService.list(actor, query);
   }
 
   @RequirePermission("users.read")
   @Get(":id")
-  getById(@CurrentUser() actor: RequestUser, @Param(new ZodValidationPipe(idParamSchema)) params: { id: string }) {
+  getById(@CurrentUser() actor: RequestUser, @Param(new ZodValidationPipe(idParamSchema)) params: { id: string }): Promise<UserWithRelations> {
     return this.usersService.getById(actor, params.id);
   }
 
@@ -76,13 +76,13 @@ export class UsersController {
     @Param(new ZodValidationPipe(idParamSchema)) params: { id: string },
     @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserInput,
     @Req() req: Request,
-  ) {
+  ): Promise<UserWithRelations> {
     return this.usersService.update(actor, params.id, body, contextFrom(req));
   }
 
   @RequirePermission("users.manage")
   @Post(":id/deactivate")
-  deactivate(@CurrentUser() actor: RequestUser, @Param(new ZodValidationPipe(idParamSchema)) params: { id: string }, @Req() req: Request) {
+  deactivate(@CurrentUser() actor: RequestUser, @Param(new ZodValidationPipe(idParamSchema)) params: { id: string }, @Req() req: Request): Promise<UserWithRelations> {
     return this.usersService.deactivate(actor, params.id, contextFrom(req));
   }
 }

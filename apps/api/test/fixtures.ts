@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
-import type { Branch, Department, Doctor, HospitalSettings, User } from "@hospital/database";
+import type { Branch, Department, Doctor, HospitalSettings, Patient, Staff, User } from "@hospital/database";
 import { hashPassword } from "@hospital/shared";
 import { AccessTokenService } from "../src/common/jwt/access-token.service";
 import { AuthzResolverService } from "../src/auth/authz-resolver.service";
@@ -29,7 +29,7 @@ export async function createHospital(prisma: PrismaService, overrides: Partial<{
 export async function createStaffUser(
   prisma: PrismaService,
   params: { hospitalId: string | null; roleKey: "ADMIN" | "SUPER_ADMIN" | "NURSE" | "RECEPTIONIST" | "DOCTOR" },
-) {
+): Promise<Omit<User, "passwordHash">> {
   const suffix = randomUUID().slice(0, 8);
   const role = await prisma.client.role.findFirstOrThrow({ where: { hospitalId: null, key: params.roleKey } });
   const passwordHash = await hashPassword("Password1");
@@ -69,7 +69,7 @@ export async function createBranch(prisma: PrismaService, hospitalId: string, ov
 export async function createStaffMember(
   prisma: PrismaService,
   params: { hospitalId: string; branchId?: string | null; roleKey: "NURSE" | "RECEPTIONIST" | "ADMIN"; jobTitle?: string },
-) {
+): Promise<{ user: Omit<User, "passwordHash">; staff: Staff }> {
   const user = await createStaffUser(prisma, { hospitalId: params.hospitalId, roleKey: params.roleKey });
   const staff = await prisma.client.staff.create({
     data: { userId: user.id, hospitalId: params.hospitalId, branchId: params.branchId ?? null, jobTitle: params.jobTitle },
@@ -98,7 +98,7 @@ export async function createDoctorProfile(
 export async function createPatientProfile(
   prisma: PrismaService,
   params: { registeredHospitalId?: string | null; registeredBranchId?: string | null } = {},
-) {
+): Promise<{ user: Omit<User, "passwordHash">; patient: Patient }> {
   const suffix = randomUUID().slice(0, 8);
   const role = await prisma.client.role.findFirstOrThrow({ where: { hospitalId: null, key: "PATIENT" } });
   const passwordHash = await hashPassword("Password1");

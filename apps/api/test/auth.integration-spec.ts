@@ -32,6 +32,7 @@ describe("Auth (integration)", () => {
     // Cheap, order-independent cleanup: every table this suite touches,
     // deepest-dependency-first. Catalog rows (permissions/roles/medications)
     // are left alone — seeded once in beforeAll, never touched by these tests.
+    await prisma.client.notification.deleteMany();
     await prisma.client.refreshToken.deleteMany();
     await prisma.client.deviceSession.deleteMany();
     await prisma.client.otpChallenge.deleteMany();

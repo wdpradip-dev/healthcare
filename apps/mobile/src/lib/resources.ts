@@ -240,3 +240,33 @@ export const documentsApi = {
   upload: (accessToken: string, form: FormData) => apiUpload<DocumentRow>("/documents", form, accessToken),
   downloadUrl: (accessToken: string, id: string) => apiFetch<{ url: string }>(`/documents/${id}/download`, { accessToken }),
 };
+
+export type NotificationChannel = "PUSH" | "EMAIL" | "IN_APP";
+
+export interface NotificationRow {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  channel: NotificationChannel;
+  relatedEntityType: string | null;
+  relatedEntityId: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationPreferences {
+  push?: boolean;
+  email?: boolean;
+  categories?: Partial<Record<"appointments" | "consultations" | "prescriptions" | "reports", boolean>>;
+}
+
+export const notificationsApi = {
+  list: (accessToken: string, filters: { read?: boolean } = {}) =>
+    apiFetch<NotificationRow[]>(`/notifications${filters.read !== undefined ? `?read=${filters.read}` : ""}`, { accessToken }),
+  markRead: (accessToken: string, id: string) => apiFetch<NotificationRow>(`/notifications/${id}/read`, { method: "PATCH", accessToken }),
+  markAllRead: (accessToken: string) => apiFetch<{ updated: number }>("/notifications/read-all", { method: "PATCH", accessToken }),
+  preferences: (accessToken: string) => apiFetch<NotificationPreferences>("/notifications/preferences", { accessToken }),
+  updatePreferences: (accessToken: string, input: NotificationPreferences) =>
+    apiFetch<NotificationPreferences>("/notifications/preferences", { method: "PATCH", body: input, accessToken }),
+};

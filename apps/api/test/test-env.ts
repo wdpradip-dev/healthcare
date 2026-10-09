@@ -39,7 +39,8 @@ export function configureTestEnv(): void {
   process.env.EMAIL_FROM_ADDRESS ??= "no-reply@hospital-platform.test";
   process.env.PUSH_PROVIDER_CREDENTIALS ??= "test-push-credentials";
 
-  process.env.QUEUE_BACKEND_URL ??= "redis://localhost:6379";
+  // Left unset on purpose: NotificationsModule falls back to InProcessNotificationQueue
+  // without it (docs/33), so integration tests never need a real Redis instance.
 
   process.env.CORS_ALLOWED_ORIGINS ??= "http://localhost:3000";
   process.env.LOG_LEVEL ??= "error";

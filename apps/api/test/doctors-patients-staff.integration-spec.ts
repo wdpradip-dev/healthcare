@@ -36,6 +36,7 @@ describe("Doctors/Patients/Staff (integration)", () => {
   });
 
   afterEach(async () => {
+    await prisma.client.notification.deleteMany();
     await prisma.client.refreshToken.deleteMany();
     await prisma.client.deviceSession.deleteMany();
     await prisma.client.appointment.deleteMany();

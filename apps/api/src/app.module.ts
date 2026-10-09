@@ -20,6 +20,8 @@ import { DocumentsModule } from "./documents/documents.module";
 import { PrescriptionsModule } from "./prescriptions/prescriptions.module";
 import { ReportsModule } from "./reports/reports.module";
 import { StorageModule } from "./storage/storage.module";
+import { JobsModule } from "./jobs/jobs.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 /**
  * Root module. Domain feature modules (patients, doctors, appointments, ...)
@@ -36,6 +38,8 @@ import { StorageModule } from "./storage/storage.module";
     AuditModule,
     CommonModule,
     StorageModule,
+    JobsModule,
+    NotificationsModule,
     AuthModule,
     HospitalsModule,
     BranchesModule,

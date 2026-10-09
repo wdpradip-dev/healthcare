@@ -50,6 +50,7 @@ describe("Consultations & medical records (integration)", () => {
     await prisma.client.branch.deleteMany();
     await prisma.client.hospitalSettings.deleteMany();
     await prisma.client.auditLog.deleteMany();
+    await prisma.client.notification.deleteMany();
     await prisma.client.userRole.deleteMany();
     await prisma.client.user.deleteMany();
     await prisma.client.hospital.deleteMany();

@@ -4,6 +4,7 @@ import { DomainException, type StorageProvider } from "@hospital/shared";
 import type { CreatePrescriptionInput, ListMedicationsQuery, ListPrescriptionsQuery } from "@hospital/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import type { RequestUser } from "../common/types/request-user";
 import { loadConsultationInScope } from "../consultations/consultation-access.util";
 import { resolveClinicalScope, type ClinicalScope } from "../consultations/clinical-scope.util";
@@ -14,7 +15,7 @@ import { buildTextPdf } from "./prescription-pdf";
 const PRESCRIPTION_INCLUDE = {
   items: { include: { medication: { select: { id: true, name: true, genericName: true, form: true, strength: true } } } },
   doctor: { select: { id: true, user: { select: { name: true } } } },
-  patient: { select: { id: true, user: { select: { name: true } } } },
+  patient: { select: { id: true, userId: true, user: { select: { name: true } } } },
 } satisfies Prisma.PrescriptionInclude;
 
 export type PrescriptionDetail = Prisma.PrescriptionGetPayload<{ include: typeof PRESCRIPTION_INCLUDE }>;
@@ -29,6 +30,7 @@ export class PrescriptionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -128,6 +130,10 @@ export class PrescriptionsService {
         resourceId: detail.id,
         afterState: { consultationId: detail.consultationId, itemCount: detail.items.length, supersedesId: detail.supersedesId },
       });
+      // Outside the transaction; a notify() failure never fails the response (docs/22 "Delivery mechanics").
+      await this.notifications
+        .notify("PRESCRIPTION_ISSUED", detail.patient.userId, { doctorName: detail.doctor.user.name }, { type: "Prescription", id: detail.id }, detail.hospitalId)
+        .catch(() => undefined);
       return detail;
     } catch (error) {
       // `supersedesId` is unique — a concurrent correction of the same prescription lands here.

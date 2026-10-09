@@ -29,6 +29,7 @@ describe("Users invite/activate/deactivate (integration)", () => {
   });
 
   afterEach(async () => {
+    await prisma.client.notification.deleteMany();
     await prisma.client.refreshToken.deleteMany();
     await prisma.client.deviceSession.deleteMany();
     await prisma.client.otpChallenge.deleteMany();

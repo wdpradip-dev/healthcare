@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { DomainException, generateOpaqueToken, hashOpaqueToken } from "@hospital/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 
 export interface IssuedRefreshToken {
   rawToken: string;
@@ -29,6 +30,7 @@ export class RefreshTokenService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async issue(userId: string, sessionId: string, ttlMs: number): Promise<IssuedRefreshToken> {
@@ -62,6 +64,7 @@ export class RefreshTokenService {
         ipAddress: context.ipAddress ?? null,
         userAgent: context.userAgent ?? null,
       });
+      await this.notifications.notify("REFRESH_TOKEN_REUSE", existing.userId).catch(() => undefined);
       throw new DomainException(
         "AUTH_REFRESH_TOKEN_REUSED",
         "A security issue was detected with your session. Please log in again.",

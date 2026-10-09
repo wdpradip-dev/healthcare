@@ -76,6 +76,7 @@ Indexes: `(hospitalId)`, `(branchId, status)`. Audit: `DEPARTMENT_CREATE/UPDATE/
 | failedLoginAttempts | int | default 0, reset on success |
 | lockedUntil | timestamp? | |
 | lastLoginAt | timestamp? | |
+| notificationPreferences | jsonb? | `null` = every channel/category enabled (the default); see docs/22-NOTIFICATIONS.md "Preferences" — `{ push: bool, email: bool, categories: { appointments, consultations, prescriptions, reports }: bool }`. Never consulted for a transactional/security event (docs/22's event catalog marks those non-preference-gated). |
 | createdAt / updatedAt / deletedAt | | |
 
 Constraints: at least one of `email`/`phone` non-null (check constraint); unique partial indexes on `email` and `phone` where non-null. Indexes: `hospitalId`. Relationships: 1:1 → `Patient` (optional), 1:1 → `Doctor` (optional), 1:1 → `Staff` (optional), 1:N → `UserRole`, `RefreshToken`, `DeviceSession`, `Notification`. Audit: `USER_CREATE/UPDATE/DEACTIVATE/LOCK/UNLOCK`.
@@ -477,10 +478,25 @@ Indexes: `ownerPatientId`, `(linkedEntityType, linkedEntityId)`. Audit: `DOCUMEN
 | channel | enum(`PUSH`,`EMAIL`,`SMS`,`IN_APP`) | |
 | deliveryStatus | enum(`QUEUED`,`SENT`,`DELIVERED`,`FAILED`) | |
 | relatedEntityType / relatedEntityId | string? / uuid? | |
+| attempts | int | default 0; delivery attempts so far, surfaced on the Admin Delivery Health view |
+| lastError | string? | the most recent provider failure, if any |
 | readAt | timestamptz? | |
 | createdAt | | |
 
-Indexes: `(userId, readAt)`, `deliveryStatus`. See [22-NOTIFICATIONS.md](22-NOTIFICATIONS.md).
+One event fans out into one row per eligible channel (docs/22's `IN_APP` row is the durable, always-created inbox item the patient/staff reads; `PUSH`/`EMAIL` rows are delivery-tracking artifacts for the same event, not separate inbox entries — `GET /notifications` therefore only returns `IN_APP` rows). Indexes: `(userId, readAt)`, `deliveryStatus`. See [22-NOTIFICATIONS.md](22-NOTIFICATIONS.md).
+
+### NotificationTemplate
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid | PK |
+| hospitalId | uuid? | null = the platform default template every hospital falls back to; a non-null row overrides it for that hospital only (schema-ready for the per-hospital override mentioned in docs/22-NOTIFICATIONS.md; the override UI itself is Post-MVP, so in practice every row ships with `hospitalId = null`) |
+| key | string | an event key from docs/22's catalog, e.g. `APPOINTMENT_BOOKED` |
+| channel | enum(`PUSH`,`EMAIL`,`SMS`,`IN_APP`) | a template is per (event, channel) — email has a subject, push/in-app don't |
+| subject | string? | email only |
+| body | string | `{{variable}}` interpolation, see docs/22 |
+| updatedAt / updatedBy | | |
+
+Unique: `(hospitalId, key, channel)`. A missing row for a given (hospitalId, key, channel) falls back to the built-in default text shipped in code, so the system produces sensible notification content before any admin has edited a template. Audit: none (template edits aren't clinical/security-sensitive; `updatedBy`/`updatedAt` are sufficient provenance).
 
 ### AuditLog
 **Purpose:** Immutable, append-only trail. See [24-AUDIT-LOGGING.md](24-AUDIT-LOGGING.md).
@@ -510,6 +526,7 @@ No `updatedAt`/`deletedAt`; no application-level update/delete route exists at a
 | platform | enum(`IOS`,`ANDROID`,`WEB`) | |
 | ipAddress | string? | |
 | userAgent | string? | |
+| pushToken | string? | Expo push token registered by the mobile app for this device (docs/22); `PUSH` delivery targets every non-revoked session's token for the user |
 | lastActiveAt | timestamptz | |
 | createdAt | | |
 | revokedAt | timestamptz? | |

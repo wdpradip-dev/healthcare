@@ -26,7 +26,10 @@ const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a
 describe("Prescriptions, reports & documents (integration)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  const ai = { isConfigured: true, summarize: jest.fn() } satisfies AiReportAssistProvider & { summarize: jest.Mock };
+  const ai: { -readonly [K in keyof AiReportAssistProvider]: AiReportAssistProvider[K] } & { summarize: jest.Mock } = {
+    isConfigured: true,
+    summarize: jest.fn(),
+  };
 
   beforeAll(async () => {
     const bootstrapped = await bootstrapTestApp({ aiProvider: ai });
@@ -65,6 +68,7 @@ describe("Prescriptions, reports & documents (integration)", () => {
     await prisma.client.branch.deleteMany();
     await prisma.client.hospitalSettings.deleteMany();
     await prisma.client.auditLog.deleteMany();
+    await prisma.client.notification.deleteMany();
     await prisma.client.userRole.deleteMany();
     await prisma.client.user.deleteMany();
     await prisma.client.hospital.deleteMany();

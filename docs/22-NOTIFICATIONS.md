@@ -32,7 +32,7 @@ All three real channels are accessed through one `NotificationProvider` interfac
 
 ## Delivery mechanics
 
-- Every notification-triggering event is enqueued as a job (see [11-SYSTEM-ARCHITECTURE.md](11-SYSTEM-ARCHITECTURE.md)), never sent synchronously in the request path that triggered it — a slow/unavailable push provider must never make `POST /appointments` slow or fail.
+- "Never sent synchronously" is about *delivery* (calling a push/email provider), not about creating the `Notification` row. `NotificationsService.notify()` — a couple of fast local writes plus a queue `enqueue()` call — is awaited by the triggering request (a caller never lets it fail the request; every call site swallows its errors), so the in-app row exists the moment the response comes back, matching "the in-app inbox is the durable record." The actual provider call happens inside the queued job (see [11-SYSTEM-ARCHITECTURE.md](11-SYSTEM-ARCHITECTURE.md)), fully decoupled — a slow/unavailable push provider must never make `POST /appointments` slow or fail.
 - Retry: exponential backoff, base 30s, max 5 attempts, after which `deliveryStatus = FAILED` and the failure surfaces in the Admin "Delivery Health" view ([09-ADMIN-DESIGN-MOCKUPS.md](09-ADMIN-DESIGN-MOCKUPS.md)) — failures are visible, not silent.
 - Idempotency: each job carries a deterministic key (e.g. `appointment:{id}:booked`) so a queue redelivery (at-least-once semantics) does not produce a duplicate push to the user.
 - In-app `Notification` rows are always created regardless of push/email delivery outcome — the in-app inbox is the durable record; push/email are best-effort amplifications of it.
@@ -47,4 +47,4 @@ Notification content (subject/body per event, per channel) is stored as editable
 
 ## Reminders
 
-`APPOINTMENT_REMINDER` is produced by a scheduled job (not triggered by user action) that scans for appointments crossing the T-24h and T-1h thresholds and enqueues one reminder job per threshold per appointment, deduplicated by the idempotency key so a job-scheduler restart never double-sends.
+`APPOINTMENT_REMINDER` is produced by `AppointmentReminderService`, a `@nestjs/schedule` cron running every 5 minutes inside the API process (not a separate BullMQ-repeatable job — no extra infra needed for a simple periodic scan; ADR-009's queue is for the *delivery* fan-out this job triggers, not for the scan itself) — not triggered by user action. It scans for appointments whose `startTime` has just crossed the T-24h or T-1h threshold within that 5-minute window and calls `notify()` once per (appointment, threshold), deduplicated by checking for an existing `Notification` tagged with that threshold first, so a restart or an overlapping run never double-sends.

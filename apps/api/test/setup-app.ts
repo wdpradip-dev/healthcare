@@ -2,9 +2,10 @@ import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
 import { seedCatalog, type PrismaClient } from "@hospital/database";
 import { AppModule } from "../src/app.module";
-import type { AiReportAssistProvider } from "@hospital/shared";
+import type { AiReportAssistProvider, EmailProvider, PushProvider } from "@hospital/shared";
 import { PrismaService } from "../src/prisma/prisma.service";
 import { AI_REPORT_ASSIST_PROVIDER } from "../src/storage/storage.tokens";
+import { EMAIL_PROVIDER, PUSH_PROVIDER } from "../src/jobs/notification.tokens";
 import { configureTestEnv } from "./test-env";
 
 /**
@@ -23,14 +24,20 @@ import { configureTestEnv } from "./test-env";
  * which is what this suite verifies.
  */
 export async function bootstrapTestApp(
-  options: { aiProvider?: AiReportAssistProvider } = {},
+  options: { aiProvider?: AiReportAssistProvider; emailProvider?: EmailProvider; pushProvider?: PushProvider } = {},
 ): Promise<{ app: INestApplication; prisma: PrismaService }> {
   configureTestEnv();
 
   const builder = Test.createTestingModule({ imports: [AppModule] });
-  // The report pipeline's AI stage is stubbed per suite — no test ever reaches a real provider.
+  // The report pipeline's AI stage, and notification delivery, are stubbed per suite — no test ever reaches a real provider.
   if (options.aiProvider) {
     builder.overrideProvider(AI_REPORT_ASSIST_PROVIDER).useValue(options.aiProvider);
+  }
+  if (options.emailProvider) {
+    builder.overrideProvider(EMAIL_PROVIDER).useValue(options.emailProvider);
+  }
+  if (options.pushProvider) {
+    builder.overrideProvider(PUSH_PROVIDER).useValue(options.pushProvider);
   }
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();

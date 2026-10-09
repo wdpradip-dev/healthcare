@@ -183,6 +183,18 @@ export {
 } from "./reports";
 
 export {
+  notificationCategorySchema,
+  listNotificationsQuerySchema,
+  updateNotificationPreferencesSchema,
+  registerPushTokenSchema,
+  upsertNotificationTemplateSchema,
+  type ListNotificationsQuery,
+  type UpdateNotificationPreferencesInput,
+  type RegisterPushTokenInput,
+  type UpsertNotificationTemplateInput,
+} from "./notifications";
+
+export {
   uploadableDocumentCategorySchema,
   documentLinkTypeSchema,
   uploadDocumentFieldsSchema,

@@ -14,17 +14,19 @@ There is no separate shared "Development" environment beyond Local — with no C
 
 ## Local development (`docker-compose.yml`)
 
-Services: `postgres` (named volume, standing in for Supabase locally), `object-storage` (MinIO, S3-compatible, standing in for Supabase Storage locally — both speak the same abstraction, see [21-REPORTS-AND-DOCUMENTS.md](21-REPORTS-AND-DOCUMENTS.md)). The API/worker/admin run directly via `pnpm`, not containerized in local dev, for faster iteration (hot reload without an image rebuild loop):
+Services: `postgres` (named volume, standing in for Supabase locally), `object-storage` (MinIO, S3-compatible, standing in for Supabase Storage locally — both speak the same abstraction, see [21-REPORTS-AND-DOCUMENTS.md](21-REPORTS-AND-DOCUMENTS.md)), `queue` (Redis, standing in for the managed Redis add-on — see [ADR-009](43-ARCHITECTURE-DECISIONS.md)). The API/worker/admin run directly via `pnpm`, not containerized in local dev, for faster iteration (hot reload without an image rebuild loop):
 
 ```
-docker compose up postgres object-storage
+docker compose up postgres object-storage queue
 pnpm --filter api db:migrate
 pnpm --filter api db:seed
 pnpm --filter api dev
-pnpm --filter worker dev
+pnpm --filter api worker
 pnpm --filter admin dev
 pnpm --filter mobile start
 ```
+
+`apps/worker` isn't a separate package — `pnpm --filter api worker` runs the same `apps/api` codebase with the queue-consumer entrypoint (`src/jobs/worker.main.ts`) instead of the HTTP server; see [33-ENVIRONMENT-VARIABLES.md](33-ENVIRONMENT-VARIABLES.md) "apps/worker". Without `queue` running (or `QUEUE_BACKEND_URL` unset), the API falls back to processing notification jobs in-process and `pnpm --filter api worker` has nothing to consume — fine for the no-Docker dev/test path, not for staging/production.
 
 Mobile runs via Expo CLI against the local API's LAN-reachable URL, not inside Docker.
 

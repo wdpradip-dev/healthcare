@@ -16,6 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Calendar", href: "/calendar", permission: "appointments.read" },
   { label: "Reports", href: "/reports", permission: "reports.read" },
   { label: "Documents", href: "/documents", permission: "documents.read" },
+  { label: "Notifications", href: "/notifications", permission: "notifications.manage" },
   { label: "Staff", href: "/staff", permission: "staff.read" },
   { label: "Users", href: "/users", permission: "users.read" },
 ];

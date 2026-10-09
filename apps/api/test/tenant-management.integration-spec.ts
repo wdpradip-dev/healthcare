@@ -28,6 +28,7 @@ describe("Hospital/Branch/Department management (integration)", () => {
     await prisma.client.department.deleteMany();
     await prisma.client.branch.deleteMany();
     await prisma.client.hospitalSettings.deleteMany();
+    await prisma.client.notification.deleteMany();
     await prisma.client.userRole.deleteMany({ where: { role: { key: { in: ["ADMIN", "SUPER_ADMIN"] } } } });
     await prisma.client.auditLog.deleteMany();
     await prisma.client.user.deleteMany({ where: { userRoles: { none: {} } } });

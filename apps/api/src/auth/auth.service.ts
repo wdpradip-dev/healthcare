@@ -7,6 +7,7 @@ import { AppConfigService } from "../config/config.service";
 import { AccessTokenService } from "../common/jwt/access-token.service";
 import { OtpService } from "./otp.service";
 import { RefreshTokenService } from "./refresh-token.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { AuthzResolverService } from "./authz-resolver.service";
 import { maskIdentifier } from "./mask-identifier.util";
 import type { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from "@hospital/validation";
@@ -52,6 +53,7 @@ export class AuthService {
     private readonly accessTokenService: AccessTokenService,
     private readonly auditService: AuditService,
     private readonly config: AppConfigService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async register(input: RegisterInput, context: RequestContext) {
@@ -268,6 +270,7 @@ export class AuthService {
     });
     await this.otpService.consume(challenge.id);
     await this.refreshTokenService.revokeAllForUser(user.id);
+    await this.notifications.notify("PASSWORD_CHANGED", user.id, {}, undefined, user.hospitalId).catch(() => undefined);
 
     await this.auditService.record({
       hospitalId: user.hospitalId,
@@ -338,7 +341,9 @@ export class AuthService {
 
     const isNewDevice = (await this.prisma.client.deviceSession.count({ where: { userId } })) === 1;
     if (isNewDevice) {
-      this.logger.log(`New device sign-in for user ${userId} — email alert deferred to Phase 10 (no provider wired yet).`);
+      await this.notifications
+        .notify("NEW_DEVICE_LOGIN", userId, { deviceName: context.deviceName ?? "an unrecognized device" }, undefined, user.hospitalId)
+        .catch(() => undefined);
     }
 
     const ttlMs = resolveRefreshTtlMs(authz.roles, this.config.env);

@@ -9,3 +9,5 @@ export type {
   SignedUrlOptions,
 } from "./object-storage/storage-provider.interface";
 export type { AiReportAssistProvider, ReportAssistInput, ReportAssistResult } from "./ai/report-assist.interface";
+export type { EmailMessage, EmailProvider, PushMessage, PushProvider, SmsMessage, SmsProvider } from "./notifications/provider.interface";
+export type { NotificationJob, NotificationJobQueue, EnqueueOptions } from "./notifications/job-queue.interface";

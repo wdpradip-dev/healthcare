@@ -206,7 +206,9 @@ Errors: `REPORT_ACCESS_DENIED`, `REPORT_STATE_INVALID`, `FILE_TOO_LARGE`, `INVAL
 | GET | `/notifications` | `notifications.read` (self) | List own, filters: `read=true\|false` |
 | PATCH | `/notifications/:id/read` | `notifications.read` (self) | Mark read |
 | PATCH | `/notifications/read-all` | `notifications.read` (self) | Mark all read |
-| PATCH | `/notifications/preferences` | `notifications.read` (self) | Update channel/category preferences |
+| GET | `/notifications/preferences` | `notifications.read` (self) | Read own channel/category preferences |
+| PATCH | `/notifications/preferences` | `notifications.read` (self) | Update channel/category preferences (partial merge) |
+| PATCH | `/notifications/push-token` | `notifications.read` (self) | Register this device's Expo push token (mobile only) against the caller's most recently active session |
 | GET | `/notifications/health` | `notifications.manage` | Delivery success-rate dashboard data |
 | GET | `/notifications/templates` | `notifications.manage` | List templates |
 | PUT | `/notifications/templates/:key` | `notifications.manage` | Edit a template |

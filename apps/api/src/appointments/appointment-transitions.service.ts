@@ -96,7 +96,7 @@ export class AppointmentTransitionsService {
         });
         return result;
       });
-      this.notifications.trigger("RESCHEDULED", id);
+      await this.notifications.trigger("RESCHEDULED", id);
       return updated;
     } catch (error) {
       // docs/19-APPOINTMENT-ENGINE.md "Reschedule transaction": unlike a fresh
@@ -133,7 +133,7 @@ export class AppointmentTransitionsService {
       await tx.appointmentHistory.create({ data: { appointmentId: id, action: "CANCELLED", performedBy: actor.sub, reason: input.reason } });
       return result;
     });
-    this.notifications.trigger("CANCELLED", id);
+    await this.notifications.trigger("CANCELLED", id);
     return updated;
   }
 
@@ -174,7 +174,7 @@ export class AppointmentTransitionsService {
       await tx.appointmentHistory.create({ data: { appointmentId: id, action: "CHECKED_IN", performedBy: actor.sub } });
       return result;
     });
-    this.notifications.trigger("CHECKED_IN", id);
+    await this.notifications.trigger("CHECKED_IN", id);
     return updated;
   }
 
@@ -199,7 +199,7 @@ export class AppointmentTransitionsService {
       await tx.appointmentHistory.create({ data: { appointmentId: id, action: "NO_SHOW", performedBy: actor.sub, reason: input.reason } });
       return result;
     });
-    this.notifications.trigger("NO_SHOW", id);
+    await this.notifications.trigger("NO_SHOW", id);
     return updated;
   }
 

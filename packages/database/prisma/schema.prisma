@@ -222,6 +222,7 @@ model Hospital {
   documents          Document[]
   auditLogs          AuditLog[]
   settings           HospitalSettings?
+  notificationTemplates NotificationTemplate[]
 
   @@index([status])
   @@map("hospitals")
@@ -290,6 +291,9 @@ model User {
   failedLoginAttempts Int        @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime?  @map("locked_until") @db.Timestamptz(6)
   lastLoginAt         DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  // null = every channel/category enabled (the default) — docs/22-NOTIFICATIONS.md "Preferences".
+  // Never consulted for a transactional/security event.
+  notificationPreferences Json?  @map("notification_preferences")
   createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt           DateTime?  @map("deleted_at") @db.Timestamptz(6)
@@ -317,6 +321,7 @@ model User {
   uploadedDocuments         Document[]           @relation("DocumentUploadedBy")
   auditLogEntries           AuditLog[]           @relation("AuditLogActor")
   updatedHospitalSettings   HospitalSettings[]   @relation("HospitalSettingsUpdatedBy")
+  updatedNotificationTemplates NotificationTemplate[] @relation("NotificationTemplateUpdatedBy")
 
   @@index([hospitalId])
   @@map("users")
@@ -913,6 +918,8 @@ model Notification {
   deliveryStatus    NotificationDeliveryStatus @default(QUEUED) @map("delivery_status")
   relatedEntityType String?                    @map("related_entity_type")
   relatedEntityId   String?                    @map("related_entity_id") @db.Uuid
+  attempts          Int                        @default(0)
+  lastError         String?                    @map("last_error")
   readAt            DateTime?                  @map("read_at") @db.Timestamptz(6)
   createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -921,6 +928,26 @@ model Notification {
   @@index([userId, readAt])
   @@index([deliveryStatus])
   @@map("notifications")
+}
+
+/// One event fans out into one Notification row per eligible channel (docs/22): a
+/// durable IN_APP row (the inbox) plus a delivery-tracking row per PUSH/EMAIL
+/// channel actually attempted. `GET /notifications` only ever returns IN_APP rows.
+model NotificationTemplate {
+  id         String              @id @default(uuid()) @db.Uuid
+  hospitalId String?             @map("hospital_id") @db.Uuid
+  key        String
+  channel    NotificationChannel
+  subject    String?
+  body       String
+  updatedAt  DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy  String              @map("updated_by") @db.Uuid
+
+  hospital      Hospital? @relation(fields: [hospitalId], references: [id])
+  updatedByUser User      @relation("NotificationTemplateUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@unique([hospitalId, key, channel])
+  @@map("notification_templates")
 }
 
 model AuditLog {
@@ -954,6 +981,9 @@ model DeviceSession {
   platform     DevicePlatform
   ipAddress    String?        @map("ip_address")
   userAgent    String?        @map("user_agent")
+  // Expo push token registered by the mobile app for this device (docs/22) — PUSH
+  // delivery targets every non-revoked session's token for the notified user.
+  pushToken    String?        @map("push_token")
   lastActiveAt DateTime       @default(now()) @map("last_active_at") @db.Timestamptz(6)
   createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   revokedAt    DateTime?      @map("revoked_at") @db.Timestamptz(6)

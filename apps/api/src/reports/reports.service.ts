@@ -4,6 +4,7 @@ import { DomainException, type AiReportAssistProvider, type StorageProvider } fr
 import type { CreateReportFields, ListReportsQuery, UpdateReportInput, VerifyReportInput } from "@hospital/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import type { RequestUser } from "../common/types/request-user";
 import { resolveClinicalScope, type ClinicalScope } from "../consultations/clinical-scope.util";
 import type { MalwareScanner } from "../storage/malware-scanner";
@@ -14,13 +15,13 @@ type ReportType = "lab" | "imaging";
 type PipelineStatus = "RAW" | "EXTRACTED" | "AI_ANALYZED" | "HUMAN_REVIEWED" | "RELEASED";
 
 const LAB_INCLUDE = {
-  patient: { select: { id: true, user: { select: { name: true } } } },
+  patient: { select: { id: true, userId: true, user: { select: { name: true } } } },
   verifiedByUser: { select: { name: true } },
   labOrder: { select: { doctorId: true, status: true } },
 } satisfies Prisma.LabReportInclude;
 
 const IMAGING_INCLUDE = {
-  patient: { select: { id: true, user: { select: { name: true } } } },
+  patient: { select: { id: true, userId: true, user: { select: { name: true } } } },
   verifiedByUser: { select: { name: true } },
   labOrder: { select: { doctorId: true, status: true } },
 } satisfies Prisma.ImagingReportInclude;
@@ -79,6 +80,7 @@ export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
     @Inject(MALWARE_SCANNER) private readonly scanner: MalwareScanner,
     @Inject(AI_REPORT_ASSIST_PROVIDER) private readonly ai: AiReportAssistProvider,
@@ -250,6 +252,10 @@ export class ReportsService {
       throw new DomainException("REPORT_STATE_INVALID", "This report has already moved on.");
     }
     await this.record(actor, "REPORT_VERIFY", loaded, { aiSummaryDecision: input.aiSummaryDecision ?? null });
+    const title = loaded.type === "lab" ? loaded.row.reportType : loaded.row.imagingType;
+    await this.notifications
+      .notify("REPORT_READY", loaded.row.patient.userId, { reportTitle: title }, { type: loaded.type === "lab" ? "LabReport" : "ImagingReport", id }, loaded.row.hospitalId)
+      .catch(() => undefined);
     return toView(await this.load(actor, id));
   }
 

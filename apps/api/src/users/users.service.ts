@@ -1,9 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { randomBytes } from "node:crypto";
+import type { Prisma } from "@hospital/database";
 import { DomainException, hashPassword } from "@hospital/shared";
 import type { InviteUserInput, ListUsersQuery, UpdateUserInput } from "@hospital/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { ActivationTokenService } from "../common/jwt/activation-token.service";
 import { OtpService } from "../auth/otp.service";
 import { RefreshTokenService } from "../auth/refresh-token.service";
@@ -11,6 +13,13 @@ import { maskIdentifier } from "../auth/mask-identifier.util";
 import { resolveHospitalId } from "../common/tenant-scope.util";
 import type { RequestUser } from "../common/types/request-user";
 import type { RequestContext } from "../auth/auth.service";
+
+type UserPayload = Prisma.UserGetPayload<{ include: { userRoles: { include: { role: true } }; staff: true } }>;
+
+// GetPayload's static type doesn't know about the client-wide passwordHash
+// default (packages/database/src/client.ts) — Omit<..., "passwordHash"> here
+// matches what the query actually returns at runtime.
+export type UserWithRelations = Omit<UserPayload, "passwordHash">;
 
 /**
  * Staff/doctor invite → activate → deactivate lifecycle, per
@@ -31,9 +40,10 @@ export class UsersService {
     private readonly activationTokenService: ActivationTokenService,
     private readonly otpService: OtpService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly notifications: NotificationsService,
   ) {}
 
-  async list(actor: RequestUser, query: ListUsersQuery) {
+  async list(actor: RequestUser, query: ListUsersQuery): Promise<UserWithRelations[]> {
     const hospitalId = resolveHospitalId(actor, query.hospitalId);
     return this.prisma.client.user.findMany({
       where: {
@@ -50,7 +60,7 @@ export class UsersService {
     });
   }
 
-  async getById(actor: RequestUser, id: string) {
+  async getById(actor: RequestUser, id: string): Promise<UserWithRelations> {
     const user = await this.prisma.client.user.findUnique({
       where: { id },
       include: { userRoles: { include: { role: true } }, staff: true },
@@ -106,6 +116,9 @@ export class UsersService {
 
     const activationToken = this.activationTokenService.sign(user.id);
     this.deliverActivationLink(user.id, input.email ?? input.phone!, activationToken);
+
+    const hospital = await this.prisma.client.hospital.findUnique({ where: { id: hospitalId }, select: { name: true } });
+    await this.notifications.notify("STAFF_INVITED", user.id, { hospitalName: hospital?.name ?? "your hospital" }, undefined, hospitalId).catch(() => undefined);
 
     await this.auditService.record({
       hospitalId,
@@ -176,7 +189,7 @@ export class UsersService {
     });
   }
 
-  async update(actor: RequestUser, id: string, input: UpdateUserInput, context: RequestContext) {
+  async update(actor: RequestUser, id: string, input: UpdateUserInput, context: RequestContext): Promise<UserWithRelations> {
     await this.getById(actor, id);
 
     if (input.roleKey) {
@@ -210,10 +223,15 @@ export class UsersService {
     return this.getById(actor, id);
   }
 
-  async deactivate(actor: RequestUser, id: string, context: RequestContext) {
+  async deactivate(actor: RequestUser, id: string, context: RequestContext): Promise<UserWithRelations> {
     const user = await this.getById(actor, id);
     await this.prisma.client.user.update({ where: { id }, data: { status: "DISABLED" } });
     await this.refreshTokenService.revokeAllForUser(id);
+
+    if (user.hospitalId) {
+      const hospital = await this.prisma.client.hospital.findUnique({ where: { id: user.hospitalId }, select: { name: true } });
+      await this.notifications.notify("STAFF_DEACTIVATED", user.id, { hospitalName: hospital?.name ?? "your hospital" }, undefined, user.hospitalId).catch(() => undefined);
+    }
 
     await this.auditService.record({
       hospitalId: user.hospitalId,
